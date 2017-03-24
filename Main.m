@@ -39,6 +39,8 @@ global Crossroad;
 global VehicleList;
 global Schedule;
 global curTime;
+% Q Matrix
+global QMatrix;
 
 %--- Initialize variables ---
 % Define Vehicle
@@ -47,7 +49,7 @@ Vehicle = struct('ID', 0, ...
 				 'type', 1, ...  % non-auto: 0; auto: 1
 				 'dynamic', [15, 0, 30, 1.5], ...  % speed (m/s), acceleration (m/s^2), max speed (m/s), max acceleration (m/s^2)
 				 'route', [1, 1, 2], ... % crossID, start entrance, end entrance
-				 'position', [1, 0, 0, 0], ...  % laneID, centerX (m), centerY (m), direction (degree)
+				 'position', [1, 0, 0, 0], ...  % crossID, centerX (m), centerY (m), direction (degree)
 				 'laneTrace', [], ...  %
 				 'crossTrace', zeros(1, 7) ...  % time, crossID, entranceID, laneID, centerX, centerY, direction
 				 );
@@ -63,21 +65,24 @@ Crossroad = struct('signal', [3, 20, 0.3, 0.15, 0.3, 0.15], ... % phase, cycle l
 VehicleList = Vehicle;
 Schedule = zeros(0, 3); % crossID, vehicleID, status (0: outside crossroad area; 1: inside crossroad area)
 
-%--- Do Simulation ---
-% Set parameters
-startTime = 0;
-endTime = 100;
-timeStep = 1;
-% Begin Simulation
-curID = 0;
-for curTime = startTime:timeStep:endTime
-	for i = 1:1:CalVehicleNum()
-		[newVehicle, curID] = GenerateVehicle(curID);
-		AddVehicle(newVehicle);
-	end
-	XroadSimulation();
+%--- Train the turning strategy ---
+SingleAgentQL();
+
+% %--- Do Simulation ---
+% % Set parameters
+% startTime = 0;
+% endTime = 100;
+% timeStep = 1;
+% % Begin Simulation
+% curID = 0;
+% for curTime = startTime:timeStep:endTime
+% 	for i = 1:1:CalVehicleNum()
+% 		[newVehicle, curID] = GenerateVehicle(curID);
+% 		AddVehicle(newVehicle);
+% 	end
+% 	XroadSimulation();
 	
-end
+% end
 
 %--- Stop timing ---
 toc;
