@@ -51,7 +51,7 @@ global maxTurn;
 alpha = 0.9;	% learning rate
 gamma = 0.9;	% discount rate
 epsilon = 0.2;	% greedy strategy parameter
-iterationTimes = 1000;	% times of iteration
+iterationTimes = 5000;	% times of iteration
 
 %--- Do training ---
 for i = 1:1:iterationTimes
@@ -62,7 +62,7 @@ for i = 1:1:iterationTimes
 		% List all possible action(s) 
 		nextStateList = CalAction(curState);
 		% Choose action using epsilon-greedy strategy
-		if rand < epsilon
+		if rand > epsilon
 			[nextState, curQ] = FindMaxState(nextStateList);
 		else
 			randIndex = randi(size(nextStateList, 1));
@@ -79,7 +79,7 @@ for i = 1:1:iterationTimes
 		curState = nextState;
 	end
 
-	disp(nnz(QMatrix)/numel(QMatrix));
+	disp([num2str(i), ': ', num2str(nnz(QMatrix)/numel(QMatrix))]);
 
 end
 
@@ -117,22 +117,26 @@ function reward = Reward(state)
 	if state(1) >= 0 && state(2) >= 0	% State in quadrant 1
 		distFactor = abs(state(1)/xRange(2));
 		degFactor = abs(state(3)-180)/(360-180);
+		banFactor = (abs((state(1)-xRange(2))/xRange(2))+abs((state(2)-yRange(2))/yRange(2)))/2;
 		cons = 100;
 	elseif state(1) < 0 && state(2) >= 0	% State in quadrant 2
 		distFactor = abs((state(1)-xRange(1))/xRange(1));
 		degFactor = abs(state(3)-180)/(360-180);
+		banFactor = 1;
 		cons = 200;
 	elseif state(1) < 0 && state(2) < 0	% State in quadrant 3
 		distFactor = abs(state(2)/yRange(1));
 		degFactor = abs(state(3)-90)/(360-90);
-		cons = 0;
+		banFactor = (abs((state(1)-xRange(1))/xRange(1))+abs((state(2)-yRange(1))/yRange(1)))/2;
+		cons = 100;
 	else  % State in quadrant 4
 		distFactor = sqrt((state(1)^2+state(2)^2)/(xRange(2)^2+yRange(1)^2));
 		degFactor = abs(state(3)-135)/(360-135);
+		banFactor = 1;
 		cons = 0;
 	end
 	% Calculate the reward
-	reward = 1/(distFactor+0.01) + 1/(degFactor+0.01) + cons;
+	reward = 1/(distFactor+0.01) - 2/(banFactor+0.01) + cons;
 end
 
 %--- Map value to index ---

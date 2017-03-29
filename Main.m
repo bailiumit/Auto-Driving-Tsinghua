@@ -35,10 +35,10 @@ warning off;
 InitializeGlobal()
 
 %--- Train the turning strategy ---
-% SingleAgentQL();
+SingleAgentQL();
 
 %--- Test the turning strategy ---
-TurningSimulation();
+% TurningSimulation();
 
 % %--- Do Simulation ---
 % % Set parameters
