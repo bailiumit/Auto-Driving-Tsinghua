@@ -1,19 +1,20 @@
 function [newVehicle, newID] = GenerateVehicle(curID)
-%ModifyStrategy - Calculate the convert rate at crossroads (no VMS)
+%GenerateVehicle - Generate the object of vehicle struct
 %
-% Syntax:  [~] = Main(curDay)
+% Syntax:  [newVehicle, newID] = GenerateVehicle(curID)
 %
 % Inputs:
-%    curDay - Current day(args)        
+%    curID - ID of current vehicle       
 %
 % Outputs:
-%    none
+%    newVehicle - structure of new vehicle    
+%    newID - ID of new vehicle    
 %
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
-% Subfunctions: none
+% Other m-files required: none
+% Subfunctions: GenerateSize, GenerateType, GenerateDynamic, GenerateRoute, InitializePosition, 
 % MAT-files required: none
 %
 % See also: none
@@ -21,7 +22,7 @@ function [newVehicle, newID] = GenerateVehicle(curID)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.10
+% 2017.02; Last revision: 2017.02.20
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -211,5 +212,3 @@ function originPosition = InitializePosition(route)
 end
 
 %------------- END OF SUBFUNCTION(S) --------------
-
-

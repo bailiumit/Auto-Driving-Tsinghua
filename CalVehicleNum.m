@@ -1,18 +1,18 @@
 function vehicleNum = CalVehicleNum()
-%ModifyStrategy - Calculate the convert rate at crossroads (no VMS)
+%CalVehicleNum - Calculate the number of vehicles to be generated
 %
-% Syntax:  [~] = Main(curDay)
+% Syntax:  vehicleNum = CalVehicleNum()
 %
 % Inputs:
-%    curDay - Current day(args)        
+%    none
 %
 % Outputs:
-%    none
+%    vehicleNum - the number of vehicles  
 %
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
+% Other m-files required: none
 % Subfunctions: none
 % MAT-files required: none
 %
@@ -21,7 +21,7 @@ function vehicleNum = CalVehicleNum()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.10
+% 2016.02; Last revision: 2016.02.20
 
 %------------- BEGIN CODE --------------
 

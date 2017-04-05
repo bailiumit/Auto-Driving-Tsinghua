@@ -1,19 +1,19 @@
-function TurningSimulation()
-%ModifyStrategy - Calculate the convert rate at crossroads (no VMS)
+function turningTime = TurningSimulation()
+%TurningSimulation - Simulate the left-turning process
 %
-% Syntax:  [~] = Main(curDay)
+% Syntax:  turningTime = TurningSimulation()
 %
 % Inputs:
-%    curDay - Current day(args)        
+%    none
 %
 % Outputs:
-%    none
+%    turningTime - time cost of turning
 %
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
-% Subfunctions: none
+% Other m-files required: none
+% Subfunctions: CalQValue, FindMaxState, JudgeTerminal, GetQValue, DrawTurningTrace, Trim
 % MAT-files required: none
 %
 % See also: none
@@ -21,11 +21,12 @@ function TurningSimulation()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.10
+% 2017.03; Last revision: 2016.04.05
 
 %------------- BEGIN CODE --------------
 
 %--- Set global variables ---
+global Crossroad;
 global xRange;
 global xScale;
 global xLeftNum;
@@ -38,31 +39,40 @@ global dirScale;
 global dirRange;
 global distNum;
 global timeScale;
-global maxSpeed;
-global maxTurn;
 
 %--- Initialize variables ---
-stateTrace = zeros(0, 4);
+initialSpeed = randi([0, 10]);
+curState = [Trim(Crossroad.dir_1_2(3)/2, xScale), -yDownNum*yScale, 90, 0];
+preState = curState;
+preState(2) = curState(2) - initialSpeed*0.1;
+stateTrace = curState;
+% stateTrace = zeros(0, 4);
 
 %--- Do testing ---
-disp('Testing');
-curState = [randi([0, xRightNum])*xScale, -yDownNum*yScale, 90, 0];
+disp('Testing: ');
 while ~JudgeTerminal(curState)
-	nextStateList = CalAction(curState);
+	% Update state
+	nextStateList = CalAction(preState, curState);
 	[nextState, curQ] = FindMaxState(nextStateList);
+	preState = curState;
 	curState = nextState;
 	% Save current state
 	stateTrace = [stateTrace; curState];
-
-	disp([curState, curQ]);
+	% Display curState
+	disp(curState);
 end
 
-%--- Draw trace ---
-figure(1)
-plot(stateTrace( : , 1), stateTrace( : , 2));
+%--- Display result ---
+% Calculate time cost of turning
+turningTime = size(stateTrace, 1)*timeScale;
+disp(['Turning time is: ', num2str(turningTime)]);
+% Draw the trace
+DrawTurningTrace(stateTrace);
 
 %------------- END OF CODE --------------
 end
+
+
 
 %------------- BEGIN SUBFUNCTION(S) --------------
 
@@ -75,16 +85,6 @@ function QValue = CalQValue(state)
 		near3State = SearchNearState(state);
 
 	end
-end
-
-%--- Search for the nearest trained state ---
-function nearState = SearchNearState(state)
-	% Set global variables
-	global xRange;
-	global yRange;
-	global dirRange;
-
-
 end
 
 %--- Search for the state with maximum reward ---
@@ -108,7 +108,7 @@ function isTerminal = JudgeTerminal(curState)
 	global xRange;
 	global yRange;
 	% Set criterion
-	xTerIndexRange = [xRange(1), xRange(1)+1];
+	xTerIndexRange = [xRange(1), xRange(1)+0.2];
 	yTerIndexRange = [0, yRange(2)];
 	% Decide whether vehicle has arrived at the terminal
 	if curState(1) >= xTerIndexRange(1) && curState(1) <= xTerIndexRange(2) && ...
@@ -141,8 +141,22 @@ function QValue = GetQValue(state)
 	QValue = QMatrix(xIndex, yIndex, dirIndex, distIndex);
 end
 
+%--- Draw trace ---
+function DrawTurningTrace(stateTrace)
+	% Set global variables	
+	global xRange;
+	global yRange;
+	% Draw the figure
+	plot(stateTrace( : , 1), stateTrace( : , 2), 'Marker', '*');
+	% plot(stateTrace( : , 1), stateTrace( : , 2));
+	axis([xRange(1), xRange(2), yRange(1), yRange(2)])
+	grid on;
+end
+
+%--- Trim number to corresponding scale ---
+function trimNumber = Trim(originNumber, scale)
+	% Calculate the trimmed value
+	trimNumber = round(originNumber/scale)*scale;
+end
+
 %------------- END OF SUBFUNCTION(S) --------------
-
-
-
-

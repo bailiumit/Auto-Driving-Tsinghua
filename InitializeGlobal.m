@@ -1,10 +1,10 @@
 function InitializeGlobal()
-%ModifyStrategy - Calculate the convert rate at crossroads (no VMS)
+%InitializeGlobal - Initialize global variables
 %
-% Syntax:  [~] = Main(curDay)
+% Syntax:  [~] = InitializeGlobal()
 %
 % Inputs:
-%    curDay - Current day(args)        
+%    none      
 %
 % Outputs:
 %    none
@@ -12,8 +12,8 @@ function InitializeGlobal()
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
-% Subfunctions: none
+% Other m-files required: none
+% Subfunctions: CalExceedType, UpdateQMatrix
 % MAT-files required: none
 %
 % See also: none
@@ -21,7 +21,7 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.10
+% 2017.03; Last revision: 2016.04.05
 
 %------------- BEGIN CODE --------------
 
@@ -67,8 +67,7 @@ global dirScale;
 global dirRange;
 global distNum;
 global timeScale;
-global maxSpeed;
-global maxTurn;
+global maxAcc;
 % Horizontal Position
 xRange = [-Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3), Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)];
 xScale = 0.1;
@@ -88,17 +87,26 @@ dirNum = floor((dirRange(2)-dirRange(1))/dirScale) + 1;
 % Distance to the front vehicle
 distNum = 2;	% 0: safe, 1: unsafe
 % Time of per simulation (unit: s)
-timeScale = 0.1;
+timeScale = 0.25;
 % Limit of action
-maxSpeed = 10;
-maxTurn = 30;
+maxAcc = 10;
 
 %--- Others ---
 global QMatrix;
 global curTime;
+
 % QMatrix
 if ~exist('QMatrix.mat')
-	QMatrix = zeros(xNum, yNum, dirNum, distNum);
+	QMatrix = -Inf*ones(xNum, yNum, dirNum, distNum);
+	for x = -xLeftNum*xScale:xScale:xRightNum*xScale
+		for y = -yDownNum*yScale:yScale:yUpNum*yScale
+			if CalExceedType(x, y) == 0
+				for dir = 90:dirScale:180
+					UpdateQMatrix([x, y, dir, 0], 0);
+				end
+			end
+		end
+	end
 else
 	load 'QMatrix.mat';
 end
@@ -108,4 +116,44 @@ end
 
 
 
+%------------- BEGIN SUBFUNCTION(S) --------------
 
+%--- Decide whether the agent has exceeded boundaries ---
+function exceedType = CalExceedType(x, y)
+	% Set global variables	
+	global xRange;
+	global yRange;
+	% Initialize variable(s)
+	exceedType = 0;
+	% Judge whether the agent is outside the boundary of quadrant 3
+	if x<=0 && y<=0 && x^2/(abs(xRange(1))-1)^2+y^2/(yRange(1))^2 > 1
+		exceedType = 1;
+	% Judge whether the agent is outside the boundary of quadrant 1, 2, 4
+	elseif yRange(2)*x + xRange(2)*y > 0 || x > xRange(2)/2
+		exceedType = 2;
+	end
+end
+
+%--- Update state in Q matrix ---
+function UpdateQMatrix(state, QValue)
+	% Set global variables	
+	global QMatrix;
+	global xScale;
+	global xLeftNum;
+	global yScale;
+	global yDownNum;
+	global dirScale;
+	global distNum;
+	% Calculate index of xPosition
+	xIndex = fix(state(1)/xScale)+xLeftNum+1;
+	% Calculate index of yPosition
+	yIndex = fix(state(2)/yScale)+yDownNum+1;
+	% Calculate index of direction
+	dirIndex = fix(state(3)/dirScale)+1;
+	% Calculate index of distance status
+	distIndex = state(4)+1;
+	% Calculate the value in Q matrix
+	QMatrix(xIndex, yIndex, dirIndex, distIndex) = QValue;
+end
+
+%------------- END OF SUBFUNCTION(S) --------------

@@ -1,12 +1,4 @@
-%Main - Calculate the convert rate at crossroads (no VMS)
-%
-% Syntax:  [~] = Main(curDay)
-%
-% Inputs:
-%    curDay - Current day(args)        
-%
-% Outputs:
-%    none
+%Main - Core console
 %
 % Example: 
 %    none
@@ -20,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.10
+% 2017.02; Last revision: 2016.04.05
 
 %------------- BEGIN CODE --------------
 
@@ -29,16 +21,19 @@ tic;
 
 %--- System setting ---
 clc;
+clear global;
 warning off;
 
 %--- Set global variables ---
-InitializeGlobal()
+global QMatrix;
+
+InitializeGlobal();
 
 %--- Train the turning strategy ---
 SingleAgentQL();
 
-%--- Test the turning strategy ---
-% TurningSimulation();
+% --- Test the turning strategy ---
+turningTime = TurningSimulation();
 
 % %--- Do Simulation ---
 % % Set parameters
@@ -60,8 +55,3 @@ SingleAgentQL();
 toc;
 
 %------------- END OF CODE --------------
-
-
-
-
-

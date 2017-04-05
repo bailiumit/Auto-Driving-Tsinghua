@@ -1,19 +1,20 @@
-function stateList = CalAction(curState)
-%ModifyStrategy - Calculate the convert rate at crossroads (no VMS)
+function stateList = CalAction(preState, curState)
+%CalAction - Calculate available states for next step (for Q-Learning)
 %
-% Syntax:  [~] = Main(curDay)
+% Syntax:  stateList = CalAction(preState, curState)
 %
 % Inputs:
-%    curDay - Current day(args)        
+%    preState - previous state       
+%    curState - current state       
 %
 % Outputs:
-%    none
+%    stateList - collection of possible states
 %
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
-% Subfunctions: none
+% Other m-files required: none
+% Subfunctions: JudgeExceed, CalDnI, Trim
 % MAT-files required: none
 %
 % See also: none
@@ -21,14 +22,13 @@ function stateList = CalAction(curState)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.10
+% 2017.03; Last revision: 2016.04.05
 
 %------------- BEGIN CODE --------------
 
 %--- Set global variables ---
 global Crossroad;
-global maxSpeed;
-global maxTurn;
+global maxAcc;
 global xRange;
 global xScale;
 global yRange;
@@ -39,29 +39,40 @@ global timeScale;
 %--- Initialize variable(s) ---
 stateList = zeros(0, 4);
 
-%--- Calculate the range of search area ---
-searchRange = zeros(1, 4);
-maxLength = maxSpeed*timeScale;
-searchRange(1) = max(Trim(curState(1)-maxLength, xScale), xRange(1));
-searchRange(2) = min(Trim(curState(1)+maxLength, xScale), xRange(2));
-searchRange(3) = max(Trim(curState(2)-maxLength, yScale), yRange(1));
-searchRange(4) = min(Trim(curState(2)+maxLength, yScale), yRange(2));
+%--- Calculate the next state if keeping current speed ---
+nextInitState = curState;
+nextInitState(1) = 2*curState(1) - preState(1);
+nextInitState(2) = 2*curState(2) - preState(2);
 
-%--- Search for possible state(s) ---
-for x = searchRange(1):xScale:searchRange(2)
-	for y = searchRange(3):yScale:searchRange(4)
-		% Judge whether the state is within reach
-		[distance, inclination] = CalDnI(x, y, curState(1), curState(2));
-		if distance < 0.05
-			nextDirection = curState(3)+maxTurn;
-			if nextDirection > 360
-				nextDirection = nextDirection-360;
+%--- Calculate stateList ---
+if curState == preState  % If agent stops, move into neighbor state
+	nextState = curState;
+	nextState(1) = max(nextState(1)-xScale, xRange(1));
+	nextState(2) = min(nextState(2)+yScale, yRange(2));
+	stateList = [stateList; nextState];
+else  % If agent remains normal
+	% Define the area to search
+	searchRange = zeros(1, 4);
+	maxLength = maxAcc*timeScale*timeScale;
+	searchRange(1) = max(Trim(nextInitState(1)-maxLength, xScale), xRange(1));
+	searchRange(2) = min(Trim(nextInitState(1)+maxLength, xScale), xRange(2));
+	searchRange(3) = max(Trim(nextInitState(2)-maxLength, yScale), yRange(1));
+	searchRange(4) = min(Trim(nextInitState(2)+maxLength, yScale), yRange(2));
+	% Search for possible state(s)
+	for x = searchRange(1):xScale:searchRange(2)
+		for y = searchRange(3):yScale:searchRange(4)
+			% Judge whether the state is within reach
+			[distance, inclination] = CalDnI(x, y, curState(1), curState(2), curState(3));
+			if distance <= maxLength
+				nextState = zeros(1, 4);
+				nextState(1) = Trim(x, xScale);
+				nextState(2) = Trim(y, xScale);
+				nextState(3) = Trim(inclination, dirScale);
+				% Avoid exceeded nextState
+				if ~JudgeExceed(nextState(1), nextState(2))
+					stateList = [stateList; nextState];
+				end
 			end
-			nextState = [x, y, Trim(nextDirection, dirScale), 0];
-			stateList = [stateList; nextState];
-		elseif distance <= maxLength && abs(inclination-curState(3)) <= maxTurn
-			nextState = [x, y, Trim(inclination, dirScale), 0];
-			stateList = [stateList; nextState];
 		end
 	end
 end
@@ -73,8 +84,22 @@ end
 
 %------------- BEGIN SUBFUNCTION(S) --------------
 
+%--- Decide whether the agent has exceeded boundaries ---
+function isExceed = JudgeExceed(x, y)
+	% Set global variables	
+	global xRange;
+	global yRange;
+	% Initialize variable(s)
+	isExceed = false;
+	% Judge whether the agent is outside the boundary of quadrant 3
+	if (x<=0 && y<=0 && x^2/(abs(xRange(1))-1)^2+y^2/(yRange(1))^2 > 1) || ...
+	   (yRange(2)*x + xRange(2)*y > 0 || x > xRange(2)/2)
+		isExceed = true;
+	end
+end
+
 %--- Calculate the distance and inclination ---
-function [distance, inclination] = CalDnI(x, y, x0, y0)
+function [distance, inclination] = CalDnI(x, y, x0, y0, oriInclination)
 	% Calculate distance
 	distance = sqrt((x-x0)^2+(y-y0)^2);
 	% Calculate inclination
@@ -82,7 +107,7 @@ function [distance, inclination] = CalDnI(x, y, x0, y0)
 		if y > y0
 			inclination = 90;
 		elseif y == y0
-			inclination = 0;
+			inclination = oriInclination;
 		else
 			inclination = 270;			
 		end
@@ -104,7 +129,3 @@ function trimNumber = Trim(originNumber, scale)
 end
 
 %------------- END OF SUBFUNCTION(S) --------------
-
-
-
-

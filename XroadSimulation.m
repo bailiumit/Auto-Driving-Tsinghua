@@ -1,10 +1,10 @@
 function XroadSimulation()
-%ModifyStrategy - Calculate the convert rate at crossroads (no VMS)
+%XroadSimulation - Simulate the whole crossroad
 %
-% Syntax:  [~] = Main(curDay)
+% Syntax:  [~] = XroadSimulation()
 %
 % Inputs:
-%    curDay - Current day(args)        
+%    none      
 %
 % Outputs:
 %    none
@@ -12,8 +12,8 @@ function XroadSimulation()
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
-% Subfunctions: none
+% Other m-files required: none
+% Subfunctions: JudgeStage
 % MAT-files required: none
 %
 % See also: none
@@ -21,7 +21,7 @@ function XroadSimulation()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.10
+% 2017.02; Last revision: 2017.02.20
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -91,7 +91,4 @@ function signal = JudgeStage()
 	end
 end
 
-
 %------------- END OF SUBFUNCTION(S) --------------
-
-

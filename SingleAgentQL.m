@@ -1,10 +1,10 @@
 function SingleAgentQL()
-%ModifyStrategy - Calculate the convert rate at crossroads (no VMS)
+%SingleAgentQL - Train left-turning strategy by Q-learning method
 %
-% Syntax:  [~] = Main(curDay)
+% Syntax:  [~] = SingleAgentQL()
 %
 % Inputs:
-%    curDay - Current day(args)        
+%    none
 %
 % Outputs:
 %    none
@@ -12,8 +12,8 @@ function SingleAgentQL()
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
-% Subfunctions: none
+% Other m-files required: none
+% Subfunctions: FindMaxState, Reward, GetQValue, UpdateQMatrix, JudgeTerminal, Trim
 % MAT-files required: none
 %
 % See also: none
@@ -21,7 +21,7 @@ function SingleAgentQL()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.03.22
+% 2017.03; Last revision: 2016.04.05
 
 %------------- BEGIN CODE --------------
 
@@ -44,23 +44,28 @@ global dirScale;
 global dirRange;
 global distNum;
 global timeScale;
-global maxSpeed;
-global maxTurn;
 
 %--- Set training parameters ---
-alpha = 0.9;	% learning rate
-gamma = 0.9;	% discount rate
+alpha = 0.5;	% learning rate
+gamma = 0.5;	% discount rate
 epsilon = 0.2;	% greedy strategy parameter
-iterationTimes = 5000;	% times of iteration
+discount = 0.999;	% discount factor of epsilon
+iterationTimes = 10000;	% times of iteration
+tStart = cputime;
 
 %--- Do training ---
 for i = 1:1:iterationTimes
+	% Begin timing of the iteration
+	tIterStart = cputime;
 	% Select an initial state randomly
-	curState = [randi([0, xRightNum])*xScale, -yDownNum*yScale, 90, 0];
+	initialSpeed = randi([0, 10]);
+	curState = [Trim(Crossroad.dir_1_2(3)/2, xScale), -yDownNum*yScale, 90, 0];
+	preState = curState;
+	preState(2) = curState(2) - initialSpeed*0.1;
 	% Do value iteration until reaching terminal
 	while ~JudgeTerminal(curState)
 		% List all possible action(s) 
-		nextStateList = CalAction(curState);
+		nextStateList = CalAction(preState, curState);
 		% Choose action using epsilon-greedy strategy
 		if rand > epsilon
 			[nextState, curQ] = FindMaxState(nextStateList);
@@ -70,21 +75,35 @@ for i = 1:1:iterationTimes
 			curQ = GetQValue(nextState);
 		end
 		% Calculate maximum possible Q value of next action
-		next2StateList = CalAction(nextState);
+		next2StateList = CalAction(curState, nextState);
 		[~, nextMaxQ] = FindMaxState(next2StateList);
 		% Update Q matrix
-		newQ = curQ + alpha*(Reward(nextState) + gamma*nextMaxQ - curQ);
+		newQ = curQ + alpha*(Reward(preState, curState, nextState) + gamma*nextMaxQ - curQ);
 		UpdateQMatrix(curState, newQ);
 		% Update state
+		preState = curState;
 		curState = nextState;
 	end
-
-	disp([num2str(i), ': ', num2str(nnz(QMatrix)/numel(QMatrix))]);
-
+	% Decrease yhe epsilon
+	epsilon = epsilon*discount;
+	% End timing of the iteration
+	tIterEnd = cputime;
+	% Display the iteration information
+	infNum = sum(sum(sum(sum(QMatrix == -Inf))));
+	zeroNum = sum(sum(sum(sum(QMatrix == 0))));
+	totalNum = numel(QMatrix) - infNum;
+	validNum = totalNum - zeroNum;
+	disp(['Iteration: ', num2str(i), '  ', ...
+		  'Coverage: ', num2str(validNum/totalNum*100), '%  ', ...
+		  'Iteration Time: ', num2str(tIterEnd-tIterStart), 's  ', ...
+		  'Total Time: ', num2str(tIterEnd-tStart), 's  ', ...
+		  'Average Time: ', num2str((tIterEnd-tStart)/i), 's']);
+	% Save QMatrix 
+	if mod(i, 100) == 0
+		save('QMatrix.mat', 'QMatrix');
+		disp(['Save QMatrix in interation ', num2str(i)]);
+	end
 end
-
-%--- Save QMatrix ---
-save('QMatrix.mat', 'QMatrix');
 
 %------------- END OF CODE --------------
 end
@@ -109,34 +128,41 @@ function [maxState, maxQ] = FindMaxState(stateList)
 end
 
 %--- Calculate reward ---
-function reward = Reward(state)
+function reward = Reward(preState, curState, nextState)
 	% Set global variables 
 	global xRange;
 	global yRange;
-	% Define factors of the function in different quadrants
-	if state(1) >= 0 && state(2) >= 0	% State in quadrant 1
-		distFactor = abs(state(1)/xRange(2));
-		degFactor = abs(state(3)-180)/(360-180);
-		banFactor = (abs((state(1)-xRange(2))/xRange(2))+abs((state(2)-yRange(2))/yRange(2)))/2;
-		cons = 100;
-	elseif state(1) < 0 && state(2) >= 0	% State in quadrant 2
-		distFactor = abs((state(1)-xRange(1))/xRange(1));
-		degFactor = abs(state(3)-180)/(360-180);
-		banFactor = 1;
-		cons = 200;
-	elseif state(1) < 0 && state(2) < 0	% State in quadrant 3
-		distFactor = abs(state(2)/yRange(1));
-		degFactor = abs(state(3)-90)/(360-90);
-		banFactor = (abs((state(1)-xRange(1))/xRange(1))+abs((state(2)-yRange(1))/yRange(1)))/2;
-		cons = 100;
-	else  % State in quadrant 4
-		distFactor = sqrt((state(1)^2+state(2)^2)/(xRange(2)^2+yRange(1)^2));
-		degFactor = abs(state(3)-135)/(360-135);
-		banFactor = 1;
-		cons = 0;
+	global timeScale;
+	% Calculate the factors of distance
+	% distFactor = abs(curState(1)-xRange(1))/(xRange(2)-xRange(1));
+	distFactor = ((curState(1)-xRange(1))^2+(curState(2)-yRange(2))^2)/...
+				 ((xRange(1)-xRange(2))^2+(yRange(1)-yRange(2))^2);
+	% Calculate the factors of degree
+	degFactor = abs(curState(3)-135)/45;
+	% Calculate the factors of comfort level
+	l0 = sqrt((curState(1)-preState(1))^2+(curState(2)-preState(2))^2);
+	l1 = sqrt((nextState(1)-curState(1))^2+(nextState(2)-curState(2))^2);
+	v0 = l0/timeScale;
+	v1 = l1/timeScale;
+	drad = deg2rad(nextState(3)-curState(3));
+	a_t = (v1*cos(drad)-v0)/timeScale;
+	a_r = v1*sin(drad)/timeScale;
+	comfDegree = sqrt((1.4*a_t)^2+(1.4*a_r)^2);
+	if comfDegree < 0.315
+		comfFactor = 1.0;
+	elseif comfDegree >= 0.315 && comfDegree < 0.5
+		comfFactor = 0.8;	
+	elseif comfDegree >= 0.5 && comfDegree < 0.8
+		comfFactor = 0.6;		
+	elseif comfDegree >= 0.8 && comfDegree < 1.25
+		comfFactor = 0.4;
+	elseif comfDegree >= 1.25 && comfDegree < 2.0
+		comfFactor = 0.2;
+	else
+		comfFactor = 0;
 	end
 	% Calculate the reward
-	reward = 1/(distFactor+0.01) - 2/(banFactor+0.01) + cons;
+	reward = 1/(distFactor+0.01) + 1/(degFactor+0.01) - 1/(comfFactor+0.01);
 end
 
 %--- Map value to index ---
@@ -170,7 +196,6 @@ function UpdateQMatrix(state, QValue)
 	global yScale;
 	global yDownNum;
 	global dirScale;
-	global distNum;
 	% Calculate index of xPosition
 	xIndex = fix(state(1)/xScale)+xLeftNum+1;
 	% Calculate index of yPosition
@@ -189,7 +214,7 @@ function isTerminal = JudgeTerminal(curState)
 	global xRange;
 	global yRange;
 	% Set criterion
-	xTerIndexRange = [xRange(1), xRange(1)+1];
+	xTerIndexRange = [xRange(1), xRange(1)+0.2];
 	yTerIndexRange = [0, yRange(2)];
 	% Decide whether vehicle has arrived at the terminal
 	if curState(1) >= xTerIndexRange(1) && curState(1) <= xTerIndexRange(2) && ...
@@ -200,8 +225,10 @@ function isTerminal = JudgeTerminal(curState)
 	end		
 end
 
+%--- Trim number to corresponding scale ---
+function trimNumber = Trim(originNumber, scale)
+	% Calculate the trimmed value
+	trimNumber = round(originNumber/scale)*scale;
+end
+
 %------------- END OF SUBFUNCTION(S) --------------
-
-
-
-
