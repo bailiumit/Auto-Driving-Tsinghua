@@ -21,7 +21,7 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2016.04.05
+% 2017.03; Last revision: 2017.04.10
 
 %------------- BEGIN CODE --------------
 
@@ -32,29 +32,38 @@ global Crossroad;
 Vehicle = struct('ID', 0, ...
 				 'size', [3, 1.8], ...  % length, width (unit: m)
 				 'type', 1, ...  % non-auto: 0; auto: 1
-				 'dynamic', [15, 0, 30, 1.5], ...  % speed (m/s), acceleration (m/s^2), max speed (m/s), max acceleration (m/s^2)
-				 'route', [1, 1, 2], ... % crossID, start entrance, end entrance
-				 'position', [1, 0, 0, 0], ...  % crossID, centerX (m), centerY (m), direction (degree)
-				 'laneTrace', [], ...  %
-				 'crossTrace', zeros(1, 7) ...  % time, crossID, entranceID, laneID, centerX, centerY, direction
+				 'route', [1, 2], ... % start entrance, end entrance
+				 'position', [0, 0, 0], ...  % centerX (m), centerY (m), direction (degree)
+				 'trace', zeros(1, 5), ...  % time, centerX (m), centerY (m), direction (degree)
+				 'state', 1 ...	% outside the crossroad: 0, inside the crossroad: 1
 				 );
-% Define Schedule
-Crossroad = struct('signal', [3, 20, 0.3, 0.15, 0.3, 0.15], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
+% Define Crossroad
+Crossroad = struct('signal', [0, 120, 0.3, 0.15, 0.3, 0.15], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
 				   'dir_1_2', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_3_4', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_5_6', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_7_8', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'turningR', 10 ... % radius of the circular bead
 				   );
+if exist('signalStrategy.mat')
+	load 'signalStrategy.mat';
+	Crossroad.signal = signalStrategy;
+end
 
-%--- Dynamic ---
+%--- Simulation variables ---
 global VehicleList;
-global Schedule;
+global curTime;
+global startTime;
+global endTime;
+global timeStep;
 % Initialize dynamic variables
 VehicleList = Vehicle;
-Schedule = zeros(0, 3); % crossID, vehicleID, status (0: outside crossroad area; 1: inside crossroad area)
+% Initialize simulation parameters
+startTime = 0;
+endTime = 1000;
+timeStep = 0.5;
 
-%--- Navigation parameters ---
+%--- Q-learning variables ---
 global xRange;
 global xScale;
 global xLeftNum;
@@ -68,6 +77,7 @@ global dirRange;
 global distNum;
 global timeScale;
 global maxAcc;
+global QMatrix;
 % Horizontal Position
 xRange = [-Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3), Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)];
 xScale = 0.1;
@@ -87,14 +97,9 @@ dirNum = floor((dirRange(2)-dirRange(1))/dirScale) + 1;
 % Distance to the front vehicle
 distNum = 2;	% 0: safe, 1: unsafe
 % Time of per simulation (unit: s)
-timeScale = 0.25;
+timeScale = 0.3;
 % Limit of action
 maxAcc = 10;
-
-%--- Others ---
-global QMatrix;
-global curTime;
-
 % QMatrix
 if ~exist('QMatrix.mat')
 	QMatrix = -Inf*ones(xNum, yNum, dirNum, distNum);
@@ -120,7 +125,7 @@ end
 
 %--- Decide whether the agent has exceeded boundaries ---
 function exceedType = CalExceedType(x, y)
-	% Set global variables	
+	% Set global variable(s)	
 	global xRange;
 	global yRange;
 	% Initialize variable(s)
@@ -136,14 +141,13 @@ end
 
 %--- Update state in Q matrix ---
 function UpdateQMatrix(state, QValue)
-	% Set global variables	
+	% Set global variable(s)	
 	global QMatrix;
 	global xScale;
 	global xLeftNum;
 	global yScale;
 	global yDownNum;
 	global dirScale;
-	global distNum;
 	% Calculate index of xPosition
 	xIndex = fix(state(1)/xScale)+xLeftNum+1;
 	% Calculate index of yPosition

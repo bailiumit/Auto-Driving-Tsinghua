@@ -22,12 +22,11 @@ function stateList = CalAction(preState, curState)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2016.04.05
+% 2017.03; Last revision: 2017.04.05
 
 %------------- BEGIN CODE --------------
 
-%--- Set global variables ---
-global Crossroad;
+%--- Set global variable(s) ---
 global maxAcc;
 global xRange;
 global xScale;
@@ -86,7 +85,7 @@ end
 
 %--- Decide whether the agent has exceeded boundaries ---
 function isExceed = JudgeExceed(x, y)
-	% Set global variables	
+	% Set global variable(s)	
 	global xRange;
 	global yRange;
 	% Initialize variable(s)

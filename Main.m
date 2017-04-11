@@ -3,7 +3,7 @@
 % Example: 
 %    none
 %
-% Other m-files required: turningChoice.mat, complianceRate.mat
+% Other m-files required: none
 % Subfunctions: none
 % MAT-files required: none
 %
@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2016.04.05
+% 2017.02; Last revision: 2017.04.10
 
 %------------- BEGIN CODE --------------
 
@@ -24,32 +24,19 @@ clc;
 clear global;
 warning off;
 
-%--- Set global variables ---
-global QMatrix;
-
+%--- Set global variable(s) ---
 InitializeGlobal();
 
-%--- Train the turning strategy ---
-SingleAgentQL();
+%--- Train and test the turning strategy ---
+% OptTurning();
+% TestTurning();
 
-% --- Test the turning strategy ---
-turningTime = TurningSimulation();
+%--- Train and test traffic signal strategy ---
+% OptSignal();
+% TestSignal();
 
-% %--- Do Simulation ---
-% % Set parameters
-% startTime = 0;
-% endTime = 100;
-% timeStep = 1;
-% % Begin Simulation
-% curID = 0;
-% for curTime = startTime:timeStep:endTime
-% 	for i = 1:1:CalVehicleNum()
-% 		[newVehicle, curID] = GenerateVehicle(curID);
-% 		AddVehicle(newVehicle);
-% 	end
-% 	XroadSimulation();
-	
-% end
+%--- Train and test road structure strategy ---
+% TestStructure();
 
 %--- Stop timing ---
 toc;
