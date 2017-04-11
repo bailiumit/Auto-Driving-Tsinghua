@@ -80,7 +80,7 @@ function UpdateVehicle()
 		% Calculate the position
 		switch stepType
 			case 0
-				nextPosition = VehicleList(curID).position;
+				nextPosition = Vehic.leList(curID).position;
 			case 1
 				nextPosition = LeftTurning(VehicleList(curID));
 			case 2

@@ -27,6 +27,9 @@ warning off;
 %--- Set global variable(s) ---
 InitializeGlobal();
 
+global VehicleList;
+
+
 %--- Train and test the turning strategy ---
 % OptTurning();
 % TestTurning();
@@ -37,6 +40,10 @@ InitializeGlobal();
 
 %--- Train and test road structure strategy ---
 % TestStructure();
+
+
+XroadSimulation();
+
 
 %--- Stop timing ---
 toc;
