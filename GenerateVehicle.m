@@ -22,7 +22,7 @@ function [newVehicle, newID] = GenerateVehicle(curID)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.02.20
+% 2017.02; Last revision: 2017.04.18
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -63,7 +63,14 @@ end
 
 %--- Generate the type of vehicles randomly ---
 function newType = GenerateType()
-	newType = 1;
+	% Set parameters
+	autoRatio = 0.5;
+	% Initialize variables
+	if rand <= autoRatio
+		newType = 1;
+	else
+		newType = 0;
+	end
 end
 
 %--- Generate the route of vehicles randomly ---
@@ -135,7 +142,7 @@ function originPosition = InitializePosition(route)
 				case 4
 					newLaneID = 1;
 				case 2
-					newLaneID = randi([1, Crossroad.dir_1_2(2)]);
+					newLaneID = randi([2, Crossroad.dir_1_2(2)]);
 				case 8
 					newLaneID = Crossroad.dir_1_2(2);
 				otherwise
@@ -152,7 +159,7 @@ function originPosition = InitializePosition(route)
 				case 6
 					newLaneID = 1;
 				case 4
-					newLaneID = randi([1, Crossroad.dir_3_4(2)]);
+					newLaneID = randi([2, Crossroad.dir_3_4(2)]);
 				case 2
 					newLaneID = Crossroad.dir_3_4(2);
 				otherwise
@@ -169,7 +176,7 @@ function originPosition = InitializePosition(route)
 				case 8
 					newLaneID = 1;
 				case 6
-					newLaneID = randi([1, Crossroad.dir_5_6(2)]);
+					newLaneID = randi([2, Crossroad.dir_5_6(2)]);
 				case 4
 					newLaneID = Crossroad.dir_5_6(2);
 				otherwise
@@ -186,7 +193,7 @@ function originPosition = InitializePosition(route)
 				case 2
 					newLaneID = 1;
 				case 8
-					newLaneID = randi([1, Crossroad.dir_7_8(2)]);
+					newLaneID = randi([2, Crossroad.dir_7_8(2)]);
 				case 6
 					newLaneID = Crossroad.dir_7_8(2);
 				otherwise
@@ -196,7 +203,7 @@ function originPosition = InitializePosition(route)
 			newX = - (Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)+Crossroad.turningR);
 			newY = - (newLaneID-0.5) * Crossroad.dir_7_8(3);
 			% Initialize direction
-			newDirection = -90;
+			newDirection = 270;
 		otherwise
 			disp('Error in GenerateVehicle() -> InitializePosition() -> switch route(2)');
 	end

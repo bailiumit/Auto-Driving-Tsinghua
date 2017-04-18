@@ -13,7 +13,7 @@ function OptSignal(optimizeType)
 %    none
 %
 % Other m-files required: none
-% Subfunctions: 
+% Subfunctions: SA, GA, PSO
 % MAT-files required: QMatrix.mat
 %
 % See also: none

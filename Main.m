@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.04.10
+% 2017.02; Last revision: 2017.04.18
 
 %------------- BEGIN CODE --------------
 
@@ -27,23 +27,23 @@ warning off;
 %--- Set global variable(s) ---
 InitializeGlobal();
 
-global VehicleList;
+%--- Test road simulation ---
+XroadSimulation();
 
+%--- Train and test single agent turning strategy ---
+% OptSingleTurning();
+% TestSingleTurning();
 
-%--- Train and test the turning strategy ---
-% OptTurning();
-% TestTurning();
+%--- Train and test multi-agent turning strategy ---
+% OptMultiTurning();
+% TestMultiTurning();
 
 %--- Train and test traffic signal strategy ---
 % OptSignal();
 % TestSignal();
 
-%--- Train and test road structure strategy ---
-% TestStructure();
-
-
-XroadSimulation();
-
+%--- Investigate how multiple factors impact the optimization effect ---
+% InvestigateEffect();
 
 %--- Stop timing ---
 toc;

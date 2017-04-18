@@ -13,7 +13,7 @@ function InitializeGlobal()
 %    none
 %
 % Other m-files required: none
-% Subfunctions: CalExceedType, UpdateQMatrix
+% Subfunctions: CalExceedType, UpdateQMatrix, CalCorner
 % MAT-files required: none
 %
 % See also: none
@@ -21,7 +21,7 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.04.10
+% 2017.03; Last revision: 2017.04.18
 
 %------------- BEGIN CODE --------------
 
@@ -33,18 +33,35 @@ Vehicle = struct('ID', 0, ...
 				 'size', [3, 1.8], ...  % length, width (unit: m)
 				 'type', 1, ...  % non-auto: 0; auto: 1
 				 'route', [1, 2], ... % start entrance, end entrance
+				 'dynamic', [8, 0], ... % speed (m/s), acceleration (m/s^2)
 				 'position', [0, 0, 0], ...  % centerX (m), centerY (m), direction (degree)
-				 'trace', zeros(1, 5), ...  % time, centerX (m), centerY (m), direction (degree)
-				 'state', 1 ...	% outside the crossroad: 0, inside the crossroad: 1
+				 'trace', zeros(1, 4), ...  % time, centerX (m), centerY (m), direction (degree)
+				 'state', 0 ...	% outside the crossroad: -1, have not started: 0, inside the crossroad: 1
 				 );
 % Define Crossroad
-Crossroad = struct('signal', [0, 120, 0.3, 0.15, 0.3, 0.15], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
-				   'dir_1_2', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
-				   'dir_3_4', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
-				   'dir_5_6', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
-				   'dir_7_8', [30, 2, 3.75], ... % length, lane number, lane width (unit: meter)
-				   'turningR', 10 ... % radius of the circular bead
+Crossroad = struct('signal', [0, 100, 0.3, 0.15, 0.3, 0.15], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
+				   'dir_1_2', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
+				   'dir_3_4', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
+				   'dir_5_6', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
+				   'dir_7_8', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
+				   'turningR', 3, ... % radius of the circular bead
+				   'corner_1_8', [10, -10, 11, 11, 17], ... % center x, center y, x axis, y axis, length
+				   'corner_3_2', [10, 10, 11, 11, 17], ... % center x, center y, x axis, y axis, length
+				   'corner_5_4', [-10, 10, 11, 11, 17], ... % center x, center y, x axis, y axis, length
+				   'corner_7_6', [-10, -10, 11, 11, 17], ... % center x, center y, x axis, y axis, length
+				   'corner_1_4', [-10, -10, 11, 11, 17], ... % center x, center y, x axis, y axis, length
+				   'corner_3_6', [10, -10, 11, 11, 17], ... % center x, center y, x axis, y axis, length
+				   'corner_5_8', [10, 10, 11, 11, 17], ... % center x, center y, x axis, y axis, length
+				   'corner_7_2', [-10, 10, 11, 11, 17] ... % center x, center y, x axis, y axis, length
 				   );
+Crossroad.corner_1_8 = CalCorner(18);
+Crossroad.corner_3_2 = CalCorner(32);
+Crossroad.corner_5_4 = CalCorner(54);
+Crossroad.corner_7_6 = CalCorner(76);
+Crossroad.corner_1_4 = CalCorner(14);
+Crossroad.corner_3_6 = CalCorner(36);
+Crossroad.corner_5_8 = CalCorner(58);
+Crossroad.corner_7_2 = CalCorner(72);
 if exist('signalStrategy.mat')
 	load 'signalStrategy.mat';
 	Crossroad.signal = signalStrategy;
@@ -60,8 +77,8 @@ global timeStep;
 VehicleList = Vehicle;
 % Initialize simulation parameters
 startTime = 0;
-endTime = 1000;
-timeStep = 0.5;
+endTime = 200;
+timeStep = 0.1;
 
 %--- Q-learning variables ---
 global xRange;
@@ -158,6 +175,61 @@ function UpdateQMatrix(state, QValue)
 	distIndex = state(4)+1;
 	% Calculate the value in Q matrix
 	QMatrix(xIndex, yIndex, dirIndex, distIndex) = QValue;
+end
+
+%--- Calculate the parameters of corner ---
+function cornerPara = CalCorner(index)
+	% Set global variable(s)
+	global Crossroad;
+	% Calculate center and axes
+	switch index
+		case 18
+			centerX = Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)+Crossroad.turningR;
+			centerY = -(Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3)+Crossroad.turningR);
+			xAxis = Crossroad.turningR+Crossroad.dir_1_2(3)/2;
+			yAxis = Crossroad.turningR+Crossroad.dir_7_8(3)/2;
+		case 32
+			centerX = Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)+Crossroad.turningR;
+			centerY = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
+			xAxis = Crossroad.turningR+Crossroad.dir_1_2(3)/2;
+			yAxis = Crossroad.turningR+Crossroad.dir_3_4(3)/2;
+		case 54
+			centerX = -(Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)+Crossroad.turningR);
+			centerY = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
+			xAxis = Crossroad.turningR+Crossroad.dir_5_6(3)/2;
+			yAxis = Crossroad.turningR+Crossroad.dir_3_4(3)/2;
+		case 76
+			centerX = -(Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)+Crossroad.turningR);
+			centerY = -(Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3)+Crossroad.turningR);
+			xAxis = Crossroad.turningR+Crossroad.dir_5_6(3)/2;
+			yAxis = Crossroad.turningR+Crossroad.dir_7_8(3)/2;
+		case 14
+			centerX = -(Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)+Crossroad.turningR);
+			centerY = -(Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3)+Crossroad.turningR);
+			xAxis = Crossroad.turningR+Crossroad.dir_1_2(3)/2+Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3);
+			yAxis = Crossroad.turningR+Crossroad.dir_3_4(3)*3/2+Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3);
+		case 36
+			centerX = Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)+Crossroad.turningR;
+			centerY = -(Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3)+Crossroad.turningR);
+			xAxis = Crossroad.turningR+Crossroad.dir_5_6(3)*3/2+Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3);
+			yAxis = Crossroad.turningR+Crossroad.dir_3_4(3)/2+Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3);
+		case 58
+			centerX = Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)+Crossroad.turningR;
+			centerY = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
+			xAxis = Crossroad.turningR+Crossroad.dir_5_6(3)/2+Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3);
+			yAxis = Crossroad.turningR+Crossroad.dir_7_8(3)*3/2+Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3);
+		case 72
+			centerX = -(Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)+Crossroad.turningR);
+			centerY = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
+			xAxis = Crossroad.turningR+Crossroad.dir_1_2(3)*3/2+Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3);
+			yAxis = Crossroad.turningR+Crossroad.dir_7_8(3)/2+Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3);
+		otherwise
+			disp('Error in InitializeGlobal() -> CalCorner()');
+	end
+	% Calculate the length of quarter perimeter
+	L = pi/32*(9*(xAxis+yAxis)-5*sqrt(xAxis*yAxis)+3*sqrt((xAxis^2+yAxis^2)/2));
+	% Assemble parameters
+	cornerPara = [centerX, centerY, xAxis, yAxis, L];
 end
 
 %------------- END OF SUBFUNCTION(S) --------------

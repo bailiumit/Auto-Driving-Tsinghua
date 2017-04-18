@@ -1,4 +1,4 @@
-function OptTurning()
+function OptSingleTurning()
 %OptTurning - Train left-turning strategy with Q-learning method
 %
 % Syntax:  [~] = SingleAgentQL()
