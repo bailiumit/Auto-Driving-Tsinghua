@@ -1,5 +1,5 @@
-function TestTurning()
-%TestTurning - Simulate the left-turning process
+function TestSingleTurning()
+%TestSingleTurning - Simulate the left-turning process
 %
 % Syntax:  [] = TurningSimulation()
 %

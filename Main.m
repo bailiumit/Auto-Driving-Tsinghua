@@ -24,11 +24,13 @@ clc;
 clear global;
 warning off;
 
+global VehicleList;
+
 %--- Set global variable(s) ---
 InitializeGlobal();
 
 %--- Test road simulation ---
-XroadSimulation();
+% XroadSimulation();
 
 %--- Train and test single agent turning strategy ---
 % OptSingleTurning();
@@ -39,7 +41,7 @@ XroadSimulation();
 % TestMultiTurning();
 
 %--- Train and test traffic signal strategy ---
-% OptSignal();
+OptSignal(3);
 % TestSignal();
 
 %--- Investigate how multiple factors impact the optimization effect ---

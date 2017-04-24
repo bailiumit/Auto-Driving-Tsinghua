@@ -1,5 +1,5 @@
 function OptSingleTurning()
-%OptTurning - Train left-turning strategy with Q-learning method
+%OptSingleTurning - Train left-turning strategy with Q-learning method
 %
 % Syntax:  [~] = SingleAgentQL()
 %
@@ -93,7 +93,7 @@ for i = 1:1:iterationTimes
 	% Save QMatrix 
 	if mod(i, 100) == 0
 		save('QMatrix.mat', 'QMatrix');
-		disp(['Save QMatrix in interation ', num2str(i)]);
+		disp(['Save QMatrix in iteration ', num2str(i)]);
 	end
 end
 

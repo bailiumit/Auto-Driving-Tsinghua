@@ -27,10 +27,6 @@ function XroadSimulation()
 %------------- BEGIN MAIN FUNCTION --------------
 
 %--- Set global variable(s) ---
-% Templates of static struct
-global Vehicle;
-global Crossroad;
-%--- Simulation variables ---
 global VehicleList;
 global curTime;
 global startTime;
@@ -51,7 +47,9 @@ for curTime = startTime:timeStep:endTime
 		insideList = [insideList; newID];
 	end
 	% Update state(s) of all vehicle(s)
-	UpdateVehicle();
+	if ~isempty(insideList)
+		UpdateVehicle();
+	end
 end
 
 %------------- END OF MAIN FUNCTION --------------
@@ -135,7 +133,7 @@ function nextPosition = RegLeftTurning(vehicle)
 			xAxis = Crossroad.corner_3_6(3);
 			yAxis = Crossroad.corner_3_6(4);
 			L = Crossroad.corner_3_6(5);
-        case 5
+		case 5
 			% Intialize trace parameters
 			centerX = Crossroad.corner_5_8(1);
 			centerY = Crossroad.corner_5_8(2);

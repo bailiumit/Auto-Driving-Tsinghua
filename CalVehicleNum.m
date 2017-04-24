@@ -26,7 +26,7 @@ function vehicleNum = CalVehicleNum()
 %------------- BEGIN CODE --------------
 
 %--- Calculate the number of vehicles in a unit ---
-vehicleNum = randi([0, 2]);
+vehicleNum = randi([0, 1]);
 
 
 %------------- END OF CODE --------------

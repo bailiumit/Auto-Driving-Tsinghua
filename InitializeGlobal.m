@@ -33,13 +33,13 @@ Vehicle = struct('ID', 0, ...
 				 'size', [3, 1.8], ...  % length, width (unit: m)
 				 'type', 1, ...  % non-auto: 0; auto: 1
 				 'route', [1, 2], ... % start entrance, end entrance
-				 'dynamic', [8, 0], ... % speed (m/s), acceleration (m/s^2)
+				 'dynamic', [5, 0], ... % speed (m/s), acceleration (m/s^2)
 				 'position', [0, 0, 0], ...  % centerX (m), centerY (m), direction (degree)
 				 'trace', zeros(1, 4), ...  % time, centerX (m), centerY (m), direction (degree)
 				 'state', 0 ...	% outside the crossroad: -1, have not started: 0, inside the crossroad: 1
 				 );
 % Define Crossroad
-Crossroad = struct('signal', [0, 100, 0.3, 0.15, 0.3, 0.15], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
+Crossroad = struct('signal', [0, 100, 0.25, 0.25, 0.25, 0.25], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
 				   'dir_1_2', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_3_4', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_5_6', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
@@ -64,12 +64,11 @@ Crossroad.corner_5_8 = CalCorner(58);
 Crossroad.corner_7_2 = CalCorner(72);
 if exist('signalStrategy.mat')
 	load 'signalStrategy.mat';
-	Crossroad.signal = signalStrategy;
+	Crossroad.signal = optSignal;
 end
 
 %--- Simulation variables ---
 global VehicleList;
-global curTime;
 global startTime;
 global endTime;
 global timeStep;
@@ -77,8 +76,8 @@ global timeStep;
 VehicleList = Vehicle;
 % Initialize simulation parameters
 startTime = 0;
-endTime = 200;
-timeStep = 0.1;
+endTime = 3600;
+timeStep = 1;
 
 %--- Q-learning variables ---
 global xRange;
