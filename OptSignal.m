@@ -36,11 +36,11 @@ global curTime;
 %--- Optimize traffic signal ---
 switch optimizeType
 	case 1
-		traceT = SA();
+		[optS, traceT, timeCost] = SA();
 	case 2
-		traceT = GA();
+		[optS, traceT, timeCost] = GA();
     case 3
-		[optSignalPara, traceT, timeCost] = PSO();
+		[optS, traceT, timeCost] = PSO();
 	otherwise
 		disp('Error in OptSignal()');
 end
@@ -51,10 +51,11 @@ plot(iLine, traceT, 'LineWidth', 2);
 
 %--- Save signal to .mat file ---
 optSignal = Crossroad.signal;
-optSignal(1) = optSignalPara(1);
-optSignal(3:5) = optSignalPara(2:4);
-optSignal(6) = 1-sum(optSignalPara(2:4));
-save('signalStrategy.mat', 'optSignal');
+optSignal(1) = optS(1);
+optSignal(3:6) = optS(2:5);
+cd('MatFile');
+save('Signal.mat', 'optSignal');
+cd('..');
 
 %------------- END OF MAIN FUNCTION --------------
 end
@@ -63,33 +64,107 @@ end
 
 %------------- BEGIN SUBFUNCTION(S) --------------
 
-%--- Simulated Anneling ---
-function SA()
-
+%--- Optimize traffic signal with SA ---
+function [gBestS, traceT, timeCost] = SA()
+	% Set global variable(s) 
+	global Crossroad;
+	iniSignal = Crossroad.signal;
+	% Set parameters
+	iniTemp = 100;
+	minTemp = 10;
+	iLoop = 10;
+	r = 0.99;
+	k = 100;
+	scale = [5, 0.1, 0.1, 0.1, 0.1];
+	% Initialize optimization variables
+	iterationNum = ceil(log(minTemp/iniTemp)/log(r));
+	curTemp = iniTemp;
+	iniS = [10, 0.25, 0.25, 0.25, 0.25];
+	iniT = CalTime(iniS);
+	gBestS = iniS;
+	gBestT = iniT;
+	% Initialize optimization record variables
+	tStart = cputime;
+	traceS = zeros(iterationNum+1, length(iniS));
+	traceS(1,  : ) = iniS;
+	traceT = -1000*ones(iterationNum+1, 1);
+	traceT(1) = iniT;
+	timeCost = -1000*ones(iterationNum, iLoop);
+	% Do SA
+	for i = 1:1:iterationNum
+		disp(['--- Iteration: ', num2str(i), ', Tempature: ', num2str(curTemp), ' ---']);
+		% Update agents within loops
+		for j = 1:1:iLoop
+			% Begin timing of the agent
+			tAgentStart = cputime;
+			% Generate new signal
+			newS = ExamineSignal(gBestS+(0.5-rand(1, 5)).*scale);
+			newT = CalTime(newS);
+			diffT = newT - gBestT;
+			% If new route is better, accept it
+			if diffT < 0
+				gBestS = newS;
+				gBestT = newT;
+			% If new route is worse, accept it with probability
+			elseif exp(-k*diffT/curTemp) > rand()
+				bestRoute = newS;
+				gBestT = newT;
+			end
+			% End timing of the agent
+			tAgentEnd = cputime;
+			% Calculate optimization data
+			agentTime = tAgentEnd-tAgentStart;
+			totalTime = tAgentEnd-tStart;
+			timeCost(i, j) = agentTime;
+			% Display computation data
+			disp(['Tempature: ', num2str(curTemp), '  ', ...
+				  'Iteration: ', num2str(i), '  ', ...
+				  'Cross Time: ', num2str(newT), '  ', ...
+				  'Optimal Cross Time: ', num2str(gBestT), '  ', ...
+			  	  'Agent Time: ', num2str(agentTime), 's  ', ...
+				  'Total Time: ', num2str(totalTime), 's']);
+		end
+		traceS(i+1,  : ) = gBestS;
+		traceT(i+1,  : ) = gBestT;
+		% Cool down
+		curTemp = r*curTemp;
+		% Save data
+		if mod(i, 5) == 0 || i == iterationNum
+			cd('MatFile');
+			save('SA_Parameter.mat', 'traceS', 'traceT', 'timeCost');
+			cd('..');
+			disp(['Save SA parameters in iteration ', num2str(i)]);
+		end
+	end
+	% Return optimal signal
+	traceS(find(traceS==-1000)) = [];
+	traceT(find(traceT==-1000)) = [];
+	Crossroad.signal = iniSignal;
 end
 
 %--- Optimize traffic signal with GA ---
-function GA()
+function [gBestS, traceT, timeCost] = GA()
 
 end
 
 %--- Optimize traffic signal with PSO ---
-function [optSignalPara, traceT, timeCost] = PSO()
+function [gBestS, traceT, timeCost] = PSO()
 	% Set global variable(s) 
 	global Crossroad;
-	% Set PSO parameters
+	iniSignal = Crossroad.signal;
+	% Set parameters
 	iterationNum = 100;
 	agentNum = 10;
 	w = 0.9;
 	c1 = 0.5;
 	c2 = 0.5;
-	% Initialize variables
-	tStart = cputime;
-	iniSignal = Crossroad.signal;
-	iniS = [0, 0.25, 0.25, 0.25];
+	% Initialize optimization variables
+	iniS = [10, 0.25, 0.25, 0.25, 0.25];
 	iniT = CalTime(iniS);
 	gBestS = iniS;
-	gBestT = iniT;
+	gBestT = iniT;	
+	% Initialize optimization record variables
+	tStart = cputime;
 	traceS = zeros(iterationNum+1, length(iniS));
 	traceS(1,  : ) = iniS;
 	traceT = zeros(iterationNum+1, 1);
@@ -104,9 +179,10 @@ function [optSignalPara, traceT, timeCost] = PSO()
 						  'pBestS', iniS, ...
 						  'pBestT', iniT);
 	end
-	% Do iteration
+	% Do PSO
 	for i = 1:1:iterationNum
 		disp(['--- Iteration: ', num2str(i), ' ---']);
+		% Update agents within loops
 		for j = 1:1:agentNum
 			% Begin timing of the agent
 			tAgentStart = cputime;
@@ -134,6 +210,8 @@ function [optSignalPara, traceT, timeCost] = PSO()
 			% Display agent data
 			disp(['Iteration: ', num2str(i), '  ', ...
 				  'Agent: ', num2str(i), '  ', ...
+				  'Cross Time: ', num2str(Agent(j).curT), '  ', ...
+				  'Optimal Cross Time: ', num2str(gBestT), '  ', ...
 			  	  'Agent Time: ', num2str(agentTime), 's  ', ...
 				  'Total Time: ', num2str(totalTime), 's']);
 		end
@@ -142,13 +220,14 @@ function [optSignalPara, traceT, timeCost] = PSO()
 		traceT(i+1,  : ) = gBestT;
 		% Save data
 		if mod(i, 5) == 0
-			save('ParaPSO.mat', 'traceS', 'traceT');
+			cd('MatFile');
+			save('PSO_Parameter.mat', 'traceS', 'traceT', 'timeCost');
+			cd('..');
 			disp(['Save PSO parameters in iteration ', num2str(i)]);
 		end
 	end
 	% Return optimal signal
 	Crossroad.signal = iniSignal;
-	optSignalPara = gBestS;
 end
 
 %--- Do simulation and calculate the average traveling time ---
@@ -159,15 +238,12 @@ function aveTime = CalTime(signal)
 	global timeStep;
 	% Do the simulation
 	Crossroad.signal(1) = signal(1);
-	Crossroad.signal(3:5) = signal(2:4);
-	Crossroad.signal(6) = 1-sum(signal(2:4));
+	Crossroad.signal(3:6) = signal(2:5);
 	XroadSimulation();
 	% Initialize variable(s)
 	timeList = zeros(0, 1);
 	for i = 1:1:size(VehicleList, 2)
-		if VehicleList(i).state == -1
-			timeList = [timeList; size(VehicleList(i).trace, 1)*timeStep];
-		end
+		timeList = [timeList; size(VehicleList(i).trace, 1)*timeStep];
 	end
 	% Calculate the time
 	aveTime = mean(timeList);
@@ -177,20 +253,20 @@ end
 function validSignal = ExamineSignal(signal)
 	% Initialize variable(s)
 	validSignal = signal;
+	proportion = signal(2:5);
 	lowBound = 0.1;
-	upBound = 0.6;
-	propotion = [signal(2:4), 1-sum(signal(2:4))];
+	upBound = 0.5;
 	% Do the correction
-	for i = 1:1:length(propotion)
-		if propotion(i) < lowBound
-			propotion(i) = lowBound;
-		elseif propotion(i) > upBound
-			propotion(i) = upBound;
-		end		
+	for i = 1:1:length(proportion)
+		if proportion(i) < lowBound
+			proportion(i) = lowBound;
+		elseif proportion(i) > upBound
+			proportion(i) = upBound;
+		end
 	end
 	% Do nomalization
-	propotion = propotion/sum(propotion);
-	validSignal(2:4) = propotion(1:3);
+	proportion = proportion/sum(proportion);
+	validSignal(2:5) = proportion;
 end
 
 %------------- END OF SUBFUNCTION(S) --------------

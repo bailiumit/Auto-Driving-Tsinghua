@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.04.18
+% 2017.02; Last revision: 2017.04.23
 
 %------------- BEGIN CODE --------------
 
@@ -41,7 +41,7 @@ InitializeGlobal();
 % TestMultiTurning();
 
 %--- Train and test traffic signal strategy ---
-OptSignal(3);
+OptSignal(1);
 % TestSignal();
 
 %--- Investigate how multiple factors impact the optimization effect ---

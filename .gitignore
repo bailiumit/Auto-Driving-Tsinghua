@@ -1,4 +1,7 @@
-# Ignore .mat file(s)
+# Ignore data file(s)
+MatFile
 *.mat
 *.fig
+
+# Ignore README html file(s)
 *.html

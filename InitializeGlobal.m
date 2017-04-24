@@ -39,7 +39,7 @@ Vehicle = struct('ID', 0, ...
 				 'state', 0 ...	% outside the crossroad: -1, have not started: 0, inside the crossroad: 1
 				 );
 % Define Crossroad
-Crossroad = struct('signal', [0, 100, 0.25, 0.25, 0.25, 0.25], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
+Crossroad = struct('signal', [10, 100, 0.25, 0.25, 0.25, 0.25], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
 				   'dir_1_2', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_3_4', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_5_6', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
@@ -62,10 +62,12 @@ Crossroad.corner_1_4 = CalCorner(14);
 Crossroad.corner_3_6 = CalCorner(36);
 Crossroad.corner_5_8 = CalCorner(58);
 Crossroad.corner_7_2 = CalCorner(72);
-if exist('signalStrategy.mat')
-	load 'signalStrategy.mat';
+cd('MatFile');
+if exist('Signal.mat')
+	load 'Signal.mat';
 	Crossroad.signal = optSignal;
 end
+cd('..');
 
 %--- Simulation variables ---
 global VehicleList;
@@ -117,6 +119,7 @@ timeScale = 0.3;
 % Limit of action
 maxAcc = 10;
 % QMatrix
+cd('MatFile');
 if ~exist('QMatrix.mat')
 	QMatrix = -Inf*ones(xNum, yNum, dirNum, distNum);
 	for x = -xLeftNum*xScale:xScale:xRightNum*xScale
@@ -131,6 +134,7 @@ if ~exist('QMatrix.mat')
 else
 	load 'QMatrix.mat';
 end
+cd('..');
 
 %------------- END OF CODE --------------
 end
