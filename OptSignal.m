@@ -21,7 +21,7 @@ function OptSignal(optimizeType)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.04; Last revision: 2017.04.24
+% 2017.04; Last revision: 2017.04.25
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -45,6 +45,7 @@ switch optimizeType
 		disp('Error in OptSignal()');
 end
 
+%--- Draw the Figure ---
 % figure(figureNum);
 iLine = 1:1:size(traceT, 1);
 plot(iLine, traceT, 'LineWidth', 2);
@@ -110,13 +111,11 @@ function [gBestS, traceT, timeCost] = SA()
 				bestRoute = newS;
 				gBestT = newT;
 			end
-			% End timing of the agent
-			tAgentEnd = cputime;
 			% Calculate optimization data
+			tAgentEnd = cputime;
 			agentTime = tAgentEnd-tAgentStart;
 			totalTime = tAgentEnd-tStart;
 			timeCost(i, j) = agentTime;
-			% Display computation data
 			disp(['Tempature: ', num2str(curTemp), '  ', ...
 				  'Iteration: ', num2str(i), '  ', ...
 				  'Cross Time: ', num2str(newT), '  ', ...
@@ -136,15 +135,116 @@ function [gBestS, traceT, timeCost] = SA()
 			disp(['Save SA parameters in iteration ', num2str(i)]);
 		end
 	end
-	% Return optimal signal
-	traceS(find(traceS==-1000)) = [];
-	traceT(find(traceT==-1000)) = [];
+	% Recover Crossroad signal
 	Crossroad.signal = iniSignal;
 end
 
 %--- Optimize traffic signal with GA ---
 function [gBestS, traceT, timeCost] = GA()
+	% Set global variable(s) 
+	global Crossroad;
+	iniSignal = Crossroad.signal;
+	% Set parameters
+	iterationNum = 100;
+	agentNum = 10;
+	PCross = 0.3;
+	PVari = 0.2;
+	% Initialize optimization variables
+	for i = 1:1:agentNum
+		iniS = [20*rand, ExamineSignal([rand, rand, rand, rand])];
+		iniT = CalTime(iniS);
+		iniF = CalFitness(iniT);
+		Agent(i) = struct('S', iniS, ...
+						  'T', iniT, ...
+						  'F', iniF);
+		
+	end
+	[gBestT, optIndex] = min([Agent.T]);
+	gBestS = Agent(optIndex).S;
+	% Initialize optimization record variables
+	tStart = cputime;
+	traceS = zeros(iterationNum+1, length(gBestS));
+	traceS(1,  : ) = gBestS;
+	traceT = zeros(iterationNum+1, 1);
+	traceT(1) = gBestT;
+	timeCost = zeros(iterationNum, agentNum);
+	% Do GA
+	for i = 1:1:iterationNum
+		% Begin timing of the agent
+		tIterStart = cputime;		
+		% Update agents within loops
+		oddAgent = [];
+		for j = 1:1:agentNum
+			% Cross & Variance
+			if mod(j, 2) == 1
+				oddAgent = Agent(RWSelection(Agent));
+			else 
+				evenAgent = Agent(RWSelection(Agent));
+				% Cross
+				[oddAgent, evenAgent] = Cross(oddAgent, evenAgent);
+				% Variation
+				[oddAgent, evenAgent] = Variation(oddAgent, evenAgent);
+				% Add processed agents into new agent list
+				NewAgent(j-1) = oddAgent;
+				NewAgent(j) = evenAgent;
+			end
+		end
+		% Update agent of the generation
+		Agent = NewAgent;
+		% Mark current gBestS and gBestT
+		[gBestT, optIndex] = min([Agent.T]);
+		gBestS = Agent(optIndex).S;
+		traceT(i+1,  : ) = gBestT;
+		traceS(i+1,  : ) = gBestS;
+		% Calculate optimization data
+		tIterEnd = cputime;
+		iterTime = tIterEnd-tIterStart;
+		totalTime = tIterEnd-tStart;
+		timeCost(i, j) = agentTime;
+		disp(['Iteration: ', num2str(i), '  ', ...
+			  'Optimal Cross Time: ', num2str(gBestT), '  ', ...
+		  	  'Iteration Time: ', num2str(iterTime), 's  ', ...
+			  'Total Time: ', num2str(totalTime), 's']);
+		% Save data
+		if mod(i, 5) == 0 || i == iterationNum
+			cd('MatFile');
+			save('GA_Parameter.mat', 'traceS', 'traceT', 'timeCost');
+			cd('..');
+			disp(['Save GA parameters in iteration ', num2str(i)]);
+		end
+	end
+	% Recover Crossroad signal
+	Crossroad.signal = iniSignal;
 
+	% Roulette Wheel Selection
+	function index = RWSelection(Agent)
+		% Initialize variable(s)
+		agentNum = size(Agent, 2);
+		rNum = rand;
+		fTable = [Agent.F]
+		fSum = sum(fTable);
+		% Calculate index
+		for i = 1:1:agentNum
+			if rNum > sum(fTable(1:i-1))/fSum && rNum <= sum(fTable(1:i))/fSum
+				index = i;
+			end
+		end
+	end
+
+	% Calculate fitness value
+	function F = CalFitness(T)
+		F = 1/(T-15);
+	end
+
+	% Cross
+	function [cAgentA, cAgentB] = Cross(agentA, agentB)
+
+	end
+	
+	% Variation
+	function [vAgentA, vAgentB] = Variation(agentA, agentB)
+
+	end
 end
 
 %--- Optimize traffic signal with PSO ---
@@ -154,10 +254,10 @@ function [gBestS, traceT, timeCost] = PSO()
 	iniSignal = Crossroad.signal;
 	% Set parameters
 	iterationNum = 100;
-	agentNum = 10;
-	w = 0.9;
-	c1 = 0.5;
-	c2 = 0.5;
+	agentNum = 20;
+	w = 0.8;
+	c1 = 1;
+	c2 = 1;
 	% Initialize optimization variables
 	iniS = [10, 0.25, 0.25, 0.25, 0.25];
 	iniT = CalTime(iniS);
@@ -201,13 +301,11 @@ function [gBestS, traceT, timeCost] = PSO()
 					gBestT = Agent(j).curT;
 				end
 			end
-			% End timing of the agent
-			tAgentEnd = cputime;
 			% Calculate optimization data
+			tAgentEnd = cputime;
 			agentTime = tAgentEnd-tAgentStart;
 			totalTime = tAgentEnd-tStart;
 			timeCost(i, j) = agentTime;
-			% Display agent data
 			disp(['Iteration: ', num2str(i), '  ', ...
 				  'Agent: ', num2str(i), '  ', ...
 				  'Cross Time: ', num2str(Agent(j).curT), '  ', ...
@@ -219,14 +317,14 @@ function [gBestS, traceT, timeCost] = PSO()
 		traceS(i+1,  : ) = gBestS;
 		traceT(i+1,  : ) = gBestT;
 		% Save data
-		if mod(i, 5) == 0
+		if mod(i, 5) == 0 || i == iterationNum
 			cd('MatFile');
 			save('PSO_Parameter.mat', 'traceS', 'traceT', 'timeCost');
 			cd('..');
 			disp(['Save PSO parameters in iteration ', num2str(i)]);
 		end
 	end
-	% Return optimal signal
+	% Recover Crossroad signal
 	Crossroad.signal = iniSignal;
 end
 
