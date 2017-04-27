@@ -39,7 +39,7 @@ switch optimizeType
 		[optS, traceT, timeCost] = SA();
 	case 2
 		[optS, traceT, timeCost] = GA();
-    case 3
+	case 3
 		[optS, traceT, timeCost] = PSO();
 	otherwise
 		disp('Error in OptSignal()');
@@ -117,11 +117,11 @@ function [gBestS, traceT, timeCost] = SA()
 			totalTime = tAgentEnd-tStart;
 			timeCost(i, j) = agentTime;
 			disp(['Tempature: ', num2str(curTemp), '  ', ...
-				  'Iteration: ', num2str(i), '  ', ...
-				  'Cross Time: ', num2str(newT), '  ', ...
-				  'Optimal Cross Time: ', num2str(gBestT), '  ', ...
-			  	  'Agent Time: ', num2str(agentTime), 's  ', ...
-				  'Total Time: ', num2str(totalTime), 's']);
+				'Iteration: ', num2str(i), '  ', ...
+				'Cross Time: ', num2str(newT), '  ', ...
+				'Optimal Cross Time: ', num2str(gBestT), '  ', ...
+				'Agent Time: ', num2str(agentTime), 's  ', ...
+				'Total Time: ', num2str(totalTime), 's']);
 		end
 		traceS(i+1,  : ) = gBestS;
 		traceT(i+1,  : ) = gBestT;
@@ -146,18 +146,18 @@ function [gBestS, traceT, timeCost] = GA()
 	iniSignal = Crossroad.signal;
 	% Set parameters
 	iterationNum = 100;
-	agentNum = 10;
+	agentNum = 20;
 	PCross = 0.3;
-	PVari = 0.2;
+	PVari = 0.5;
+	scale = [5, 0.1, 0.1, 0.1, 0.1];
 	% Initialize optimization variables
 	for i = 1:1:agentNum
-		iniS = [20*rand, ExamineSignal([rand, rand, rand, rand])];
+		iniS = ExamineSignal([20*rand, rand, rand, rand, rand]);
 		iniT = CalTime(iniS);
 		iniF = CalFitness(iniT);
 		Agent(i) = struct('S', iniS, ...
-						  'T', iniT, ...
-						  'F', iniF);
-		
+						'T', iniT, ...
+						'F', iniF);
 	end
 	[gBestT, optIndex] = min([Agent.T]);
 	gBestS = Agent(optIndex).S;
@@ -167,7 +167,7 @@ function [gBestS, traceT, timeCost] = GA()
 	traceS(1,  : ) = gBestS;
 	traceT = zeros(iterationNum+1, 1);
 	traceT(1) = gBestT;
-	timeCost = zeros(iterationNum, agentNum);
+	timeCost = zeros(iterationNum, 1);
 	% Do GA
 	for i = 1:1:iterationNum
 		% Begin timing of the agent
@@ -177,18 +177,27 @@ function [gBestS, traceT, timeCost] = GA()
 		for j = 1:1:agentNum
 			% Cross & Variance
 			if mod(j, 2) == 1
-				oddAgent = Agent(RWSelection(Agent));
+				oddAgent = Agent(RWSelection());
 			else 
-				evenAgent = Agent(RWSelection(Agent));
+				evenAgent = Agent(RWSelection());
 				% Cross
-				[oddAgent, evenAgent] = Cross(oddAgent, evenAgent);
+				Cross();
 				% Variation
-				[oddAgent, evenAgent] = Variation(oddAgent, evenAgent);
+				Variation();
+				% Update time cost and f value
+				oddAgent.T = CalTime(oddAgent.S);
+				oddAgent.F = CalFitness(oddAgent.T);
+				evenAgent.T = CalTime(evenAgent.S);
+				evenAgent.F = CalFitness(evenAgent.T);
 				% Add processed agents into new agent list
 				NewAgent(j-1) = oddAgent;
 				NewAgent(j) = evenAgent;
 			end
 		end
+		% Elitism (replace the worst agent in NewAgent with the optimal agent in Agent)
+		[~, optIndex] = min([Agent.T]);
+		[~, worstIndex] = max([NewAgent.T]);
+		NewAgent(worstIndex) = Agent(optIndex);
 		% Update agent of the generation
 		Agent = NewAgent;
 		% Mark current gBestS and gBestT
@@ -200,11 +209,11 @@ function [gBestS, traceT, timeCost] = GA()
 		tIterEnd = cputime;
 		iterTime = tIterEnd-tIterStart;
 		totalTime = tIterEnd-tStart;
-		timeCost(i, j) = agentTime;
+		timeCost(i) = iterTime;
 		disp(['Iteration: ', num2str(i), '  ', ...
-			  'Optimal Cross Time: ', num2str(gBestT), '  ', ...
-		  	  'Iteration Time: ', num2str(iterTime), 's  ', ...
-			  'Total Time: ', num2str(totalTime), 's']);
+			'Optimal Cross Time: ', num2str(gBestT), '  ', ...
+			'Iteration Time: ', num2str(iterTime), 's  ', ...
+			'Total Time: ', num2str(totalTime), 's']);
 		% Save data
 		if mod(i, 5) == 0 || i == iterationNum
 			cd('MatFile');
@@ -217,33 +226,41 @@ function [gBestS, traceT, timeCost] = GA()
 	Crossroad.signal = iniSignal;
 
 	% Roulette Wheel Selection
-	function index = RWSelection(Agent)
+	function index = RWSelection()
 		% Initialize variable(s)
 		agentNum = size(Agent, 2);
 		rNum = rand;
-		fTable = [Agent.F]
+		fTable = [Agent.F];
 		fSum = sum(fTable);
 		% Calculate index
-		for i = 1:1:agentNum
-			if rNum > sum(fTable(1:i-1))/fSum && rNum <= sum(fTable(1:i))/fSum
-				index = i;
+		for k = 1:1:agentNum
+			if rNum > sum(fTable(1:k-1))/fSum && rNum <= sum(fTable(1:k))/fSum
+				index = k;
 			end
 		end
 	end
 
 	% Calculate fitness value
 	function F = CalFitness(T)
-		F = 1/(T-15);
+		F = exp(32-T);
 	end
 
 	% Cross
-	function [cAgentA, cAgentB] = Cross(agentA, agentB)
-
+	function Cross()
+		% Backup
+		tempAgent = oddAgent;
+		% Cross for oddAgent
+		oddAgent.S = ExamineSignal((1-PCross)*oddAgent.S + PCross*evenAgent.S);
+		% Cross for evenAgent
+		evenAgent.S = ExamineSignal((1-PCross)*evenAgent.S + PCross*tempAgent.S);
 	end
 	
 	% Variation
-	function [vAgentA, vAgentB] = Variation(agentA, agentB)
-
+	function Variation()
+		% Cross for oddAgent
+		oddAgent.S = ExamineSignal(oddAgent.S+PVari*(0.5-rand(1, 5)).*scale);
+		% Cross for evenAgent
+		evenAgent.S = ExamineSignal(evenAgent.S+PVari*(0.5-rand(1, 5)).*scale);
 	end
 end
 
@@ -274,10 +291,10 @@ function [gBestS, traceT, timeCost] = PSO()
 	for i = 1:1:agentNum
 		iniV = rand(1, length(iniS))-0.5;
 		Agent(i) = struct('curV', iniV, ...
-						  'curS', iniS, ...
-						  'curT', iniT, ...
-						  'pBestS', iniS, ...
-						  'pBestT', iniT);
+						'curS', iniS, ...
+						'curT', iniT, ...
+						'pBestS', iniS, ...
+						'pBestT', iniT);
 	end
 	% Do PSO
 	for i = 1:1:iterationNum
@@ -307,11 +324,11 @@ function [gBestS, traceT, timeCost] = PSO()
 			totalTime = tAgentEnd-tStart;
 			timeCost(i, j) = agentTime;
 			disp(['Iteration: ', num2str(i), '  ', ...
-				  'Agent: ', num2str(i), '  ', ...
-				  'Cross Time: ', num2str(Agent(j).curT), '  ', ...
-				  'Optimal Cross Time: ', num2str(gBestT), '  ', ...
-			  	  'Agent Time: ', num2str(agentTime), 's  ', ...
-				  'Total Time: ', num2str(totalTime), 's']);
+				'Agent: ', num2str(i), '  ', ...
+				'Cross Time: ', num2str(Agent(j).curT), '  ', ...
+				'Optimal Cross Time: ', num2str(gBestT), '  ', ...
+				'Agent Time: ', num2str(agentTime), 's  ', ...
+				'Total Time: ', num2str(totalTime), 's']);
 		end
 		% Mark current gBestS and gBestT
 		traceS(i+1,  : ) = gBestS;

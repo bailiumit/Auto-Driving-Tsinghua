@@ -42,7 +42,7 @@ InitializeGlobal();
 
 %--- Train and test traffic signal strategy ---
 % OptSignal(1);
-OptSignal(2);
+% OptSignal(2);
 % OptSignal(3);
 % TestSignal();
 

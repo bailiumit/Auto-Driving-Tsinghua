@@ -21,7 +21,7 @@ function vehicleNum = CalVehicleNum()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2016.02; Last revision: 2016.02.20
+% 2016.02; Last revision: 2016.04.24
 
 %------------- BEGIN CODE --------------
 
