@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.04.25
+% 2017.02; Last revision: 2017.05.06
 
 %------------- BEGIN CODE --------------
 
@@ -37,7 +37,7 @@ InitializeGlobal();
 % TestSingleTurning();
 
 %--- Train and test multi-agent turning strategy ---
-% OptMultiTurning();
+OptMultiLine();
 % TestMultiTurning();
 
 %--- Train and test traffic signal strategy ---

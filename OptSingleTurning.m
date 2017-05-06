@@ -57,7 +57,7 @@ for i = 1:1:iterationTimes
 	% Do value iteration until reaching terminal
 	while ~JudgeTerminal(curState)
 		% List all possible action(s) 
-		nextStateList = CalAction(preState, curState);
+		nextStateList = CalTurningAction(preState, curState);
 		% Choose action using epsilon-greedy strategy
 		if rand > epsilon
 			[nextState, curQ] = FindMaxState(nextStateList);
@@ -67,7 +67,7 @@ for i = 1:1:iterationTimes
 			curQ = GetQValue(nextState);
 		end
 		% Calculate maximum possible Q value of next action
-		next2StateList = CalAction(curState, nextState);
+		next2StateList = CalTurningAction(curState, nextState);
 		[~, nextMaxQ] = FindMaxState(next2StateList);
 		% Update Q matrix
 		newQ = curQ + alpha*(Reward(preState, curState, nextState) + gamma*nextMaxQ - curQ);

@@ -21,13 +21,14 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.04.18
+% 2017.03; Last revision: 2017.05.06
 
 %------------- BEGIN CODE --------------
 
 %--- Templates of static struct ---
 global Vehicle;
 global Crossroad;
+global maxAcc;
 % Define Vehicle
 Vehicle = struct('ID', 0, ...
 				 'size', [3, 1.8], ...  % length, width (unit: m)
@@ -68,6 +69,8 @@ if exist('Signal.mat')
 	Crossroad.signal = optSignal;
 end
 cd('..');
+% Limit of action
+maxAcc = 10;
 
 %--- Simulation variables ---
 global VehicleList;
@@ -81,7 +84,7 @@ startTime = 0;
 endTime = 3600;
 timeStep = 1;
 
-%--- Q-learning variables ---
+%--- Single-agent training variables ---
 global xRange;
 global xScale;
 global xLeftNum;
@@ -94,7 +97,6 @@ global dirScale;
 global dirRange;
 global distNum;
 global timeScale;
-global maxAcc;
 global QMatrix;
 % Horizontal Position
 xRange = [-Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3), Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)];
@@ -116,8 +118,6 @@ dirNum = floor((dirRange(2)-dirRange(1))/dirScale) + 1;
 distNum = 2;	% 0: safe, 1: unsafe
 % Time of per simulation (unit: s)
 timeScale = 0.3;
-% Limit of action
-maxAcc = 10;
 % QMatrix
 cd('MatFile');
 if ~exist('QMatrix.mat')
@@ -133,6 +133,34 @@ if ~exist('QMatrix.mat')
 	end
 else
 	load 'QMatrix.mat';
+end
+cd('..');
+
+%--- Multi-agent training variables ---
+global intScale;
+global intRange;
+global intNum;
+global vScale;
+global vRange;
+global vNum;
+global timeScaleM;
+global QMatrixLine;
+% Interval
+intScale = 0.1;
+intRange = [0, 6];
+intNum = floor((intRange(2)-intRange(1))/intScale) + 1;
+% Speed
+vScale = 0.1;
+vRange = [0, 10];
+vNum = floor((vRange(2)-vRange(1))/vRange) + 1;
+% Time of per simulation (unit: s)
+timeScaleM = 0.1;
+% QMatrixLine
+cd('MatFile');
+if ~exist('QMatrixLine.mat')
+	QMatrixLine = zeros(intNum, vNum, vNum);
+else
+	load 'QMatrixLine.mat';
 end
 cd('..');
 

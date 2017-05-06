@@ -1,7 +1,7 @@
-function stateList = CalAction(preState, curState)
-%CalAction - Calculate available states for next step (for Q-Learning)
+function stateList = CalTurningAction(preState, curState)
+%CalTurningAction - Calculate available states for next step (for Q-Learning)
 %
-% Syntax:  stateList = CalAction(preState, curState)
+% Syntax:  stateList = CalTurningAction(preState, curState)
 %
 % Inputs:
 %    preState - previous state       
@@ -22,7 +22,7 @@ function stateList = CalAction(preState, curState)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.04.05
+% 2017.03; Last revision: 2017.05.06
 
 %------------- BEGIN CODE --------------
 

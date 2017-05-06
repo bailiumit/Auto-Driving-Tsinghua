@@ -24,7 +24,7 @@ The project has three optimization objects: left-turning strategy in single-agen
 
 	**"OptSingleTurning.m"**: algorithmic implementation of Q-learning
 
-	**"CalAction.m"**: calculates possible future states for a given state in Q-learning, to assist **"OptTurning.m"**
+	**"CalTurningAction.m"**: calculates possible future states for a given state in Q-learning, to assist **"OptTurning.m"**
 
 	**"TestSingleTurning.m"**: helps to illustrate the training result
 

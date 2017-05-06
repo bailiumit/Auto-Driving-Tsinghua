@@ -21,7 +21,7 @@ function OptSignal(optimizeType)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.04; Last revision: 2017.04.25
+% 2017.04; Last revision: 2017.05.06
 
 %------------- BEGIN MAIN FUNCTION --------------
 

@@ -44,7 +44,7 @@ stateTrace = zeros(0, 4);
 disp('Testing: ');
 while ~JudgeTerminal(curState)
 	% Update state
-	nextStateList = CalAction(preState, curState);
+	nextStateList = CalTurningAction(preState, curState);
 	[nextState, curQ] = FindMaxState(nextStateList);
 	preState = curState;
 	curState = nextState;
