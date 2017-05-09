@@ -21,14 +21,16 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.05.06
+% 2017.03; Last revision: 2017.05.07
 
 %------------- BEGIN CODE --------------
 
 %--- Templates of static struct ---
 global Vehicle;
 global Crossroad;
+global maxV;
 global maxAcc;
+global minAcc;
 % Define Vehicle
 Vehicle = struct('ID', 0, ...
 				 'size', [3, 1.8], ...  % length, width (unit: m)
@@ -70,7 +72,9 @@ if exist('Signal.mat')
 end
 cd('..');
 % Limit of action
-maxAcc = 10;
+maxV = 8;
+maxAcc = 5;
+minAcc = -6;
 
 %--- Simulation variables ---
 global VehicleList;
@@ -117,7 +121,7 @@ dirNum = floor((dirRange(2)-dirRange(1))/dirScale) + 1;
 % Distance to the front vehicle
 distNum = 2;	% 0: safe, 1: unsafe
 % Time of per simulation (unit: s)
-timeScale = 0.3;
+timeScale = 0.2;
 % QMatrix
 cd('MatFile');
 if ~exist('QMatrix.mat')
@@ -147,18 +151,18 @@ global timeScaleM;
 global QMatrixLine;
 % Interval
 intScale = 0.1;
-intRange = [0, 6];
+intRange = [0, 20];
 intNum = floor((intRange(2)-intRange(1))/intScale) + 1;
 % Speed
 vScale = 0.1;
-vRange = [0, 10];
-vNum = floor((vRange(2)-vRange(1))/vRange) + 1;
+vRange = [0, maxV];
+vNum = floor((vRange(2)-vRange(1))/vScale) + 1;
 % Time of per simulation (unit: s)
-timeScaleM = 0.1;
+timeScaleM = 0.2;
 % QMatrixLine
 cd('MatFile');
 if ~exist('QMatrixLine.mat')
-	QMatrixLine = zeros(intNum, vNum, vNum);
+	QMatrixLine = zeros(2, intNum, vNum, vNum);
 else
 	load 'QMatrixLine.mat';
 end

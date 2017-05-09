@@ -1,7 +1,7 @@
-function OptSingleTurning()
-%OptSingleTurning - Train left-turning strategy with Q-learning method
+function OptTurning()
+%OptTurning - Test the training result of left-turning strategy optimization
 %
-% Syntax:  [~] = SingleAgentQL()
+% Syntax:  [~] = OptTurning()
 %
 % Inputs:
 %    none
@@ -21,7 +21,7 @@ function OptSingleTurning()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.04.06
+% 2017.03; Last revision: 2017.05.08
 
 %------------- BEGIN CODE --------------
 
@@ -86,13 +86,15 @@ for i = 1:1:iterationTimes
 	totalNum = numel(QMatrix) - infNum;
 	validNum = totalNum - zeroNum;
 	disp(['Iteration: ', num2str(i), '  ', ...
-		  'Coverage: ', num2str(validNum/totalNum*100), '%  ', ...
-		  'Iteration Time: ', num2str(tIterEnd-tIterStart), 's  ', ...
-		  'Total Time: ', num2str(tIterEnd-tStart), 's  ', ...
-		  'Average Time: ', num2str((tIterEnd-tStart)/i), 's']);
+		'Coverage: ', num2str(validNum/totalNum*100), '%  ', ...
+		'Iteration Time: ', num2str(tIterEnd-tIterStart), 's  ', ...
+		'Total Time: ', num2str(tIterEnd-tStart), 's  ', ...
+		'Average Time: ', num2str((tIterEnd-tStart)/i), 's']);
 	% Save QMatrix 
 	if mod(i, 100) == 0
+		cd('MatFile');
 		save('QMatrix.mat', 'QMatrix');
+		cd('..');
 		disp(['Save QMatrix in iteration ', num2str(i)]);
 	end
 end

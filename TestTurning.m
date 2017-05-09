@@ -1,5 +1,5 @@
-function TestSingleTurning()
-%TestSingleTurning - Simulate the left-turning process
+function TestTurning()
+%TestTurning - Simulate the left-turning process
 %
 % Syntax:  [] = TurningSimulation()
 %
@@ -13,7 +13,7 @@ function TestSingleTurning()
 %    none
 %
 % Other m-files required: none
-% Subfunctions: CalQValue, FindMaxState, JudgeTerminal, GetQValue, DrawTurningTrace, Trim
+% Subfunctions: FindMaxState, JudgeTerminal, GetQValue, DrawTurningTrace, Trim
 % MAT-files required: none
 %
 % See also: none
@@ -21,7 +21,7 @@ function TestSingleTurning()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.04.05
+% 2017.03; Last revision: 2017.05.08
 
 %------------- BEGIN CODE --------------
 
@@ -67,17 +67,6 @@ end
 
 
 %------------- BEGIN SUBFUNCTION(S) --------------
-
-%--- Calculate/get the Q value of a specific state ---
-function QValue = CalQValue(state)
-	% Initialize variable(s)
-	QValue = GetQValue(state);
-	% If the state has not been trained, do calculation
-	if QValue == 0
-		near3State = SearchNearState(state);
-
-	end
-end
 
 %--- Search for the state with maximum reward ---
 function [maxState, maxQ] = FindMaxState(stateList)

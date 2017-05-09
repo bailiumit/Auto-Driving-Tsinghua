@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.06
+% 2017.02; Last revision: 2017.05.09
 
 %------------- BEGIN CODE --------------
 
@@ -24,8 +24,6 @@ clc;
 clear global;
 warning off;
 
-global VehicleList;
-
 %--- Set global variable(s) ---
 InitializeGlobal();
 
@@ -33,12 +31,17 @@ InitializeGlobal();
 % XroadSimulation();
 
 %--- Train and test single agent turning strategy ---
-% OptSingleTurning();
-% TestSingleTurning();
+% OptTurning();
+% TestTurning();
 
 %--- Train and test multi-agent turning strategy ---
-OptMultiLine();
-% TestMultiTurning();
+OptLine(0);
+TestLine(0);
+% OptLine(1);
+% TestLine(1);
+
+% stateList = CalLineAction([4, 0, 10], 0);
+% disp(stateList);
 
 %--- Train and test traffic signal strategy ---
 % OptSignal(1);
