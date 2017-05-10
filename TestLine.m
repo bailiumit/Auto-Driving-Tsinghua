@@ -21,17 +21,17 @@ function TestLine(optType)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.05; Last revision: 2017.05.09
+% 2017.05; Last revision: 2017.05.10
 
 %------------- BEGIN CODE --------------
 
 %--- Set global variable(s) ---
-global timeScaleM;
 global optType;
 
 %--- Set test parameter(s) ---
-endTime = 10;
-tArray = 0:timeScaleM:endTime;
+endTime = 5;
+timeScaleTestLine = 0.2;
+tArray = 0:timeScaleTestLine:endTime;
 
 %--- Initialize variable(s) ---
 [preState, curState, curQ] = GenRandState();
@@ -40,7 +40,7 @@ stateTrace = zeros(0, 3);
 
 %--- Do testing ---
 disp('Testing: ');
-for t = 0:timeScaleM:endTime
+for t = 0:timeScaleTestLine:endTime
 	% Update state
 	nextStateList = CalLineAction(curState, optType);
 	[nextState, curQ] = FindMaxState(nextStateList);
@@ -134,7 +134,7 @@ function DrawTurningTrace(tArray, stateTrace)
 	% Draw the trace of interval
 	yyaxis right;
 	plot(tArray, stateTrace( : , 1), 'LineWidth', 1.5);
-	ylim([0, max(stateTrace( : , 1))*1.25]);
+	ylim([0, max(stateTrace( : , 1))*1.5]);
 	ylabel('Distance (m)')
 	% Others
 	xlabel('time(s)');

@@ -21,7 +21,7 @@ function OptLine(optType)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.05; Last revision: 2017.05.09
+% 2017.05; Last revision: 2017.05.10
 
 %------------- BEGIN CODE --------------
 
@@ -38,12 +38,12 @@ global timeScaleM;
 global optType;
 
 %--- Set training parameters ---
-alpha = 0.3;	% learning rate
+alpha = 0.2;	% learning rate
 gamma = 0.5;	% discount rate
 epsilon = 0.2;	% greedy strategy parameter
-discount = 0.9997;	% discount factor of epsilon
+discount = 0.9998;	% discount factor of epsilon
 iterationTimes = 10000;	% times of iteration
-endTime = 10;
+endTime = 5;
 
 %--- Initialize variable(s) ---
 tStart = cputime;
@@ -154,7 +154,7 @@ function reward = Reward(preState, curState, nextState)
 		intFactor = Inf;
 	end
 	% Calculate the reward
-	reward = 1/(vFactor1+0.01)^2 + 1/(vFactor2+0.01)^2;
+	reward = 1/(vFactor1+0.1) + 1/(vFactor2+0.1);
 end
 
 %--- Generate random state ---

@@ -21,7 +21,7 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.05.07
+% 2017.03; Last revision: 2017.05.10
 
 %------------- BEGIN CODE --------------
 
@@ -81,14 +81,16 @@ global VehicleList;
 global startTime;
 global endTime;
 global timeStep;
+global autoRatio;
 % Initialize dynamic variables
 VehicleList = Vehicle;
 % Initialize simulation parameters
 startTime = 0;
 endTime = 3600;
 timeStep = 1;
+autoRatio = 0.5;
 
-%--- Single-agent training variables ---
+%--- Turning optimization training variables ---
 global xRange;
 global xScale;
 global xLeftNum;
@@ -140,7 +142,7 @@ else
 end
 cd('..');
 
-%--- Multi-agent training variables ---
+%--- Line optimization training variables ---
 global intScale;
 global intRange;
 global intNum;

@@ -22,7 +22,7 @@ function [newVehicle, newID] = GenerateVehicle(curID)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.04.18
+% 2017.02; Last revision: 2017.05.10
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -63,8 +63,8 @@ end
 
 %--- Generate the type of vehicles randomly ---
 function newType = GenerateType()
-	% Set parameters
-	autoRatio = 0.5;
+	% Set global variable(s)
+	global autoRatio;
 	% Initialize variables
 	if rand <= autoRatio
 		newType = 1;

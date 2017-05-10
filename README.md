@@ -44,7 +44,7 @@ The project has three optimization objects: left-turning strategy in single-agen
 
 6. **Miscellaneous**
 
-	**"XroadSimulation.m"**: simulate the traffic conditions of the intersection for a given amount of time
+	**"SimuXRoad.m"**: simulate the traffic conditions of the intersection for a given amount of time
 
 	**"CalVehicleNum.m"**: calculate the number of vehicle(s) to be geneerated in a given amount of time
 	

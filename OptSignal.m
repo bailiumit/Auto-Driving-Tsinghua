@@ -354,7 +354,7 @@ function aveTime = CalTime(signal)
 	% Do the simulation
 	Crossroad.signal(1) = signal(1);
 	Crossroad.signal(3:6) = signal(2:5);
-	XroadSimulation();
+	SimuXRoad();
 	% Initialize variable(s)
 	timeList = zeros(0, 1);
 	for i = 1:1:size(VehicleList, 2)
