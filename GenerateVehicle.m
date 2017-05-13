@@ -14,7 +14,7 @@ function [newVehicle, newID] = GenerateVehicle(curID)
 %    none
 %
 % Other m-files required: none
-% Subfunctions: GenerateSize, GenerateType, GenerateDynamic, GenerateRoute, InitializePosition, 
+% Subfunctions: GenerateSize, GenerateType, GenerateRoute, GenerateDynamic, GeneratePosition, InitializePosition, Trim
 % MAT-files required: none
 %
 % See also: none
@@ -22,7 +22,7 @@ function [newVehicle, newID] = GenerateVehicle(curID)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.10
+% 2017.02; Last revision: 2017.05.11
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -44,7 +44,8 @@ newVehicle.ID = newID;
 newVehicle.size = GenerateSize();
 newVehicle.type = GenerateType();
 newVehicle.route = GenerateRoute();
-newVehicle.position = InitializePosition(newVehicle.route);
+newVehicle.dynamic = GenerateDynamic();
+newVehicle.position = GeneratePosition(newVehicle.size, newVehicle.route, newVehicle.type);
 newVehicle.trace = [curTime-timeStep, newVehicle.position];
 
 %------------- END OF MAIN FUNCTION --------------
@@ -131,14 +132,61 @@ function newRoute = GenerateRoute()
 	newRoute = [newStart, newEnd];
 end
 
+%--- Generate the initial speed of vehicles randomly ---
+function newSpeed = GenerateDynamic()
+	% Set global variable(s)	
+	global vScale;
+	% Initialize variable(s)
+	randVMin = 2;
+	randVMax = 6;
+	newSpeed = Trim(randVMin+(randVMax-randVMin)*rand, vScale);
+end
+
+%--- Adjust the initial position of the vehicle ---
+function newPosition = GeneratePosition(newSize, newRoute, newType)
+	% Set global variable(s)
+	global VehicleList;
+	global ClassifiedList;
+	% Initialize variable(s)
+	interval = 2;
+	cellIndex = ClassifyVehicle(newRoute, newType);
+	% Calculate new position
+	if isempty(ClassifiedList{cellIndex(1), cellIndex(2)})
+		newPosition = InitializePosition(newRoute);
+	else
+		lastID = ClassifiedList{cellIndex(1), cellIndex(2)}(end);
+		lastVehicle = VehicleList(lastID);
+		if lastVehicle.state == 0
+			switch newRoute(1)
+				case 1
+					newPosition = lastVehicle.position;
+					newPosition(2) = newPosition(2) - (lastVehicle.size(1)/2+newSize(1)/2+interval);
+				case 3
+					newPosition = lastVehicle.position;
+					newPosition(1) = newPosition(1) + (lastVehicle.size(1)/2+newSize(1)/2+interval);
+				case 5
+					newPosition = lastVehicle.position;
+					newPosition(2) = newPosition(2) + (lastVehicle.size(1)/2+newSize(1)/2+interval);
+				case 7
+					newPosition = lastVehicle.position;
+					newPosition(1) = newPosition(1) - (lastVehicle.size(1)/2+newSize(1)/2+interval);
+				otherwise
+					disp('Error in GenerateVehicle() -> GeneratePosition()');
+			end
+		else
+			newPosition = InitializePosition(newRoute);
+		end
+	end
+end
+
 %--- Initialize the position of vehicles ---
-function originPosition = InitializePosition(route)
+function originPosition = InitializePosition(newRoute)
 	% Set global variable(s)
 	global Crossroad;
-	switch route(1)
+	switch newRoute(1)
 		case 1
 			% Determine the laneID
-			switch route(2)
+			switch newRoute(2)
 				case 4
 					newLaneID = 1;
 				case 2
@@ -155,7 +203,7 @@ function originPosition = InitializePosition(route)
 			newDirection = 90;
 		case 3
 			% Determine the laneID
-			switch route(2)
+			switch newRoute(2)
 				case 6
 					newLaneID = 1;
 				case 4
@@ -172,7 +220,7 @@ function originPosition = InitializePosition(route)
 			newDirection = 180;
 		case 5
 			% Determine the laneID
-			switch route(2)
+			switch newRoute(2)
 				case 8
 					newLaneID = 1;
 				case 6
@@ -189,7 +237,7 @@ function originPosition = InitializePosition(route)
 			newDirection = 0;
 		case 7
 			% Determine the laneID
-			switch route(2)
+			switch newRoute(2)
 				case 2
 					newLaneID = 1;
 				case 8
@@ -209,6 +257,61 @@ function originPosition = InitializePosition(route)
 	end
 	% Generate return value
 	originPosition = [newX, newY, newDirection];
+end
+
+%--- Classify vehicles according to their routes ---
+function cellIndex = ClassifyVehicle(route, type)
+	% Classify vehicles
+	switch 10*route(1)+route(2)
+		case 14
+			if type == 1
+				cellIndex = [1, 1];
+			else
+				cellIndex = [1, 2];
+			end
+		case 12
+			cellIndex = [1, 3];
+		case 18
+			cellIndex = [1, 4];
+		case 36
+			if type == 1
+				cellIndex = [2, 1];
+			else
+				cellIndex = [2, 2];
+			end
+		case 34
+			cellIndex = [2, 3];
+		case 32
+			cellIndex = [2, 4];
+		case 58
+			if type == 1
+				cellIndex = [3, 1];
+			else
+				cellIndex = [3, 2];
+			end
+		case 56
+			cellIndex = [3, 3];
+		case 54
+			cellIndex = [3, 4];
+		case 72
+			if type == 1
+				cellIndex = [4, 1];
+			else
+				cellIndex = [4, 2];
+			end
+		case 78
+			cellIndex = [4, 3];
+		case 76
+			cellIndex = [4, 4];
+		otherwise
+			disp('Error in GenerateVehicle() -> ClassifyVehicle()');
+	end
+end
+
+%--- Trim number to corresponding scale ---
+function trimNumber = Trim(originNumber, scale)
+	% Calculate the trimmed value
+	trimNumber = round(originNumber/scale)*scale;
 end
 
 %------------- END OF SUBFUNCTION(S) --------------

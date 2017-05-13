@@ -27,86 +27,47 @@ function UpdateSpeed(insideList)
 
 %--- Set global variable(s) ---
 global VehicleList;
+global ClassifiedList;
 global intScale;
 
-%--- Initialize variable(s) ---
-insideCell = cell(8, 1);
-for i = 1:1:8
-	insideCell{i} = zeros(0, 1);
-end
-
-%--- Classify vehicles ---
-for i = 1:1:size(insideList, 1)
-	% Initialize variable(s)
-	curID = insideList(i, 1);
-	curVehicle = VehicleList(curID);
-	% Classify vehicles
-	if curVehicle.state == 1
-		switch 10*curVehicle.route(1)+curVehicle.route(2)
-			case 12
-				insideCell{1} = [insideCell{1}; curID];
-			case 14
-				if curVehicle.type == 1
-					insideCell{2} = [insideCell{2}; curID];
-				end
-			case 34
-				insideCell{3} = [insideCell{3}; curID];
-			case 36
-				if curVehicle.type == 1
-					insideCell{4} = [insideCell{4}; curID];
-				end
-			case 56
-				insideCell{5} = [insideCell{5}; curID];
-			case 58
-				if curVehicle.type == 1
-					insideCell{6} = [insideCell{6}; curID];
-				end
-			case 78
-				insideCell{7} = [insideCell{7}; curID];
-			case 72
-				if curVehicle.type == 1
-					insideCell{8} = [insideCell{8}; curID];
-				end
-			otherwise
-		end
-	end
-end
 
 %--- Update vehicle speed ---
-for i = 1:1:8
-	j = 1;
-	while j <= size(insideCell{i}, 1)-1
-		% Locate current vehicle
-		curID = insideCell{i}(j);
-		curVehicle = VehicleList(curID);
-		if curVehicle.type == 1
-			% Locate the vehicle behind
-			nextID = insideCell{i}(j+1);
-			nextVehicle = VehicleList(nextID);
-			% Get dynamic properties
-			v1 = curVehicle.dynamic(1);
-			x1 = curVehicle.position(1);
-			y1 = curVehicle.position(2);
-			v2 = nextVehicle.dynamic(1);
-			x2 = nextVehicle.position(1);
-			y2 = nextVehicle.position(2);
-			% Initialize variables required to calculate new speed
-			interval = Trim(sqrt((x1-x2)^2+(y1-y2)^2), intScale);
-			curState = [interval, v1, v2];
+for i = 1:1:4
+	for j = 1:1:4
+		j = 1;
+		while j <= size(ClassifiedList{i, j}, 1)-1
+			% Locate current vehicle
+			curID = ClassifiedList{i, j}(j);
+			curVehicle = VehicleList(curID);
 			if curVehicle.type == 1
-				optType = 0;
+				% Locate the vehicle behind
+				nextID = ClassifiedList{i, j}(j+1);
+				nextVehicle = VehicleList(nextID);
+				% Get dynamic properties
+				v1 = curVehicle.dynamic(1);
+				x1 = curVehicle.position(1);
+				y1 = curVehicle.position(2);
+				v2 = nextVehicle.dynamic(1);
+				x2 = nextVehicle.position(1);
+				y2 = nextVehicle.position(2);
+				% Initialize variables required to calculate new speed
+				interval = Trim(sqrt((x1-x2)^2+(y1-y2)^2)-(curVehicle.size(1)/2+curVehicle.size(2)/2), intScale);
+				curState = [interval, v1, v2];
+				if curVehicle.type == 1
+					optType = 0;
+				else
+					optType = 1;
+				end
+				% Update speed
+				nextState = GetNextState(curState, optType);
+				VehicleList(curID).dynamic(1) = nextState(2);
+				VehicleList(nextID).dynamic(1) = nextState(3);
+				% Set index
+				j = j+2;
 			else
-				optType = 1;
+				% Set index
+				j = j+1;
 			end
-			% Update speed
-			nextState = GetNextState(curState, optType);
-			VehicleList(curID).dynamic(1) = nextState(2);
-			VehicleList(nextID).dynamic(1) = nextState(3);
-			% Set index
-			j = j+2;
-		else
-			% Set index
-			j = j+1;
 		end
 	end
 end
