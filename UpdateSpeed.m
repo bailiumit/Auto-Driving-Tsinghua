@@ -30,7 +30,6 @@ global VehicleList;
 global ClassifiedList;
 global intScale;
 
-
 %--- Update vehicle speed ---
 for i = 1:1:4
 	for j = 1:1:4

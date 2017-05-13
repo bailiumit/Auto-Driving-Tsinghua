@@ -22,23 +22,26 @@ function SimuXRoad()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.11
+% 2017.02; Last revision: 2017.05.13
 
 %------------- BEGIN MAIN FUNCTION --------------
 
 %--- Set global variable(s) ---
 global VehicleList;
+global PositionCell;
 global insideList;
 global ClassifiedList;
 global curTime;
 global startTime;
 global endTime;
 global timeStep;
+global recordCount;
 
 %--- Initialize variable(s) ---
 insideList = zeros(0, 1);
 ClassifiedList = cell(4, 4);
 ClassifiedList(:) = {zeros(0, 1)};
+recordCount = 1;
 
 %--- Do Simulation ---
 newID = 0;
@@ -54,6 +57,8 @@ for curTime = startTime:timeStep:endTime
 	if ~isempty(insideList)
 		UpdateVehicle();
 	end
+	% Record the position
+	RecordPosition();
 end
 
 %------------- END OF MAIN FUNCTION --------------
@@ -67,8 +72,8 @@ end
 function UpdateVehicle()
 	% Set global variable(s)
 	global VehicleList;
-	global curTime;
 	global insideList;
+	global curTime;
 	% Initialize variable(s)
 	signal = JudgeStage();
 	isPhaseEnd = JudgePhaseEnd(signal);
@@ -105,13 +110,31 @@ function UpdateVehicle()
 		else
 			VehicleList(curID).state = -1;
 			insideList(i) = -1;
-			% EditClassifiedList(curID, 0);
+			EditClassifiedList(curID, 0);
 		end
 		VehicleList(curID).trace = [VehicleList(curID).trace; [curTime, nextPosition]];
 	end
 	% Update insideList and 
 	insideList(find(insideList==-1))=[];
 end
+
+%--- Record the position of all vehicles at the same time ---
+function RecordPosition()
+	% Set global variable(s)
+	global VehicleList;
+	global PositionCell;
+	global insideList;
+	global recordCount;
+	% Initialize variable(s)
+	PositionCell{recordCount, 1} = zeros(size(insideList, 1), 4);
+	for i = 1:1:size(insideList, 1)
+		curVehicle = VehicleList(insideList(i));
+		PositionCell{recordCount, 1}(i, : ) = [curVehicle.ID, curVehicle.position];
+	end
+	% Update recordCount
+	recordCount = recordCount+1;
+end
+
 
 %--- Decide the stage of the signal ---
 function signal = JudgeStage()

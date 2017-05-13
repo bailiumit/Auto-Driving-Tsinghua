@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.11
+% 2017.02; Last revision: 2017.05.13
 
 %------------- BEGIN CODE --------------
 
@@ -27,6 +27,8 @@ warning off;
 
 global VehicleList;
 global ClassifiedList;
+global PositionCell;
+
 
 %--- Set global variable(s) ---
 InitializeGlobal();
@@ -47,8 +49,9 @@ InitializeGlobal();
 % OptSignal(3);
 % TestSignal();
 
-%--- Test road simulation ---
+%--- Display the result ---
 SimuXRoad();
+DrawMotion();
 
 %--- Investigate how multiple factors impact the optimization effect ---
 % InvestigateEffect();

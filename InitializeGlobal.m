@@ -21,7 +21,7 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.05.11
+% 2017.03; Last revision: 2017.05.13
 
 %------------- BEGIN CODE --------------
 
@@ -42,7 +42,7 @@ Vehicle = struct('ID', 0, ...
 				 'state', 0 ...	% outside the crossroad: -1, have not started: 0, inside the crossroad: 1
 				 );
 % Define Crossroad
-Crossroad = struct('signal', [0, 5000, 0.25, 0.25, 0.25, 0.25], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
+Crossroad = struct('signal', [0, 100, 0.25, 0.25, 0.25, 0.25], ... % phase, cycle length, 1&5 s/r, 1&5 l, 3&7 s/r, 3&7 l
 				   'dir_1_2', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_3_4', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
 				   'dir_5_6', [30, 3, 3.75], ... % length, lane number, lane width (unit: meter)
@@ -78,16 +78,18 @@ minAcc = -6;
 
 %--- Simulation variables ---
 global VehicleList;
+global PositionCell;
 global startTime;
 global endTime;
 global timeStep;
 global autoRatio;
 % Initialize dynamic variables
 VehicleList = Vehicle;
+PositionCell = cell(ceil((endTime-startTime)/timeStep), 1);
 % Initialize simulation parameters
 startTime = 0;
-endTime = 1000;
-timeStep = 1;
+endTime = 100;
+timeStep = 0.1;
 autoRatio = 0.5;
 
 %--- Turning optimization training variables ---
@@ -123,7 +125,7 @@ dirNum = floor((dirRange(2)-dirRange(1))/dirScale) + 1;
 % Distance to the front vehicle
 distNum = 2;	% 0: safe, 1: unsafe
 % Time of per simulation (unit: s)
-timeScale = 0.2;
+timeScale = 0.3;
 % QMatrix
 cd('MatFile');
 if ~exist('QMatrix.mat')
