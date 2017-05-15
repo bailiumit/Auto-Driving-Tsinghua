@@ -22,7 +22,7 @@ function [newVehicle, newID] = GenerateVehicle(curID)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.11
+% 2017.02; Last revision: 2017.05.15
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -43,10 +43,12 @@ newID = curID+1;
 newVehicle.ID = newID;
 newVehicle.size = GenerateSize();
 newVehicle.type = GenerateType();
-newVehicle.route = GenerateRoute();
+% newVehicle.route = GenerateRoute();
+newVehicle.route = [1, 4];
 newVehicle.dynamic = GenerateDynamic();
 newVehicle.position = GeneratePosition(newVehicle.size, newVehicle.route, newVehicle.type);
 newVehicle.trace = [curTime-timeStep, newVehicle.position];
+newVehicle.state = 0;
 
 %------------- END OF MAIN FUNCTION --------------
 end
@@ -145,6 +147,7 @@ end
 %--- Adjust the initial position of the vehicle ---
 function newPosition = GeneratePosition(newSize, newRoute, newType)
 	% Set global variable(s)
+	global Crossroad;
 	global VehicleList;
 	global ClassifiedList;
 	% Initialize variable(s)
@@ -154,9 +157,39 @@ function newPosition = GeneratePosition(newSize, newRoute, newType)
 	if isempty(ClassifiedList{cellIndex(1), cellIndex(2)})
 		newPosition = InitializePosition(newRoute);
 	else
+		% Initialize variable(s)
 		lastID = ClassifiedList{cellIndex(1), cellIndex(2)}(end);
 		lastVehicle = VehicleList(lastID);
-		if lastVehicle.state == 0
+		xLeftBound = -Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)-Crossroad.turningR;
+		xRightBound = Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)+Crossroad.turningR;
+		yDownBound = -Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3)-Crossroad.turningR;
+		yUpBound = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
+		isAtXRoad = false;
+		% Decide whether the vehicle has arrived at the crossroad area
+		switch lastVehicle.route(1)
+			case 1
+				if lastVehicle.route(2) >= yDownBound
+					isAtXRoad = true;	
+				end
+			case 3
+				if lastVehicle.route(1) <= xRightBound
+					isAtXRoad = true;	
+				end
+			case 5
+				if lastVehicle.route(2) <= yUpBound
+					isAtXRoad = true;	
+				end
+			case 7
+				if lastVehicle.route(1) >= xLeftBound
+					isAtXRoad = true;	
+				end
+			otherwise
+				disp('Error in GenerateVehicle() -> GeneratePosition()');
+		end
+		% Calculate the position
+		if lastVehicle.state == 1 && isAtXRoad
+			newPosition = InitializePosition(newRoute);
+		else
 			switch newRoute(1)
 				case 1
 					newPosition = lastVehicle.position;
@@ -173,8 +206,6 @@ function newPosition = GeneratePosition(newSize, newRoute, newType)
 				otherwise
 					disp('Error in GenerateVehicle() -> GeneratePosition()');
 			end
-		else
-			newPosition = InitializePosition(newRoute);
 		end
 	end
 end

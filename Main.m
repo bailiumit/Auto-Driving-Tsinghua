@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.13
+% 2017.02; Last revision: 2017.05.15
 
 %------------- BEGIN CODE --------------
 
@@ -23,12 +23,6 @@ tic;
 clc;
 clear global;
 warning off;
-
-
-global VehicleList;
-global ClassifiedList;
-global PositionCell;
-
 
 %--- Set global variable(s) ---
 InitializeGlobal();

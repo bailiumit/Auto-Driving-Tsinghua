@@ -21,7 +21,7 @@ function nextPosition = SimuMotion(vehicle, motionType)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.05; Last revision: 2017.05.10
+% 2017.05; Last revision: 2017.05.15
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -56,54 +56,95 @@ function nextPosition = RegLeftTurning(vehicle)
 	x = vehicle.position(1);
 	y = vehicle.position(2);
 	dir = vehicle.position(3);
-	% Update the position
+	xLeftBound = -Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)-Crossroad.turningR;
+	xRightBound = Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)+Crossroad.turningR;
+	yDownBound = -Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3)-Crossroad.turningR;
+	yUpBound = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
+	isAtXRoad = false;
+	% Decide whether the vehicle has arrived at the crossroad area
 	switch vehicle.route(1)
 		case 1
-			% Intialize trace parameters
-			centerX = Crossroad.corner_1_4(1);
-			centerY = Crossroad.corner_1_4(2);
-			xAxis = Crossroad.corner_1_4(3);
-			yAxis = Crossroad.corner_1_4(4);
-			L = Crossroad.corner_1_4(5);
+			if y >= yDownBound
+				isAtXRoad = true;	
+			end
 		case 3
-			% Intialize trace parameters
-			centerX = Crossroad.corner_3_6(1);
-			centerY = Crossroad.corner_3_6(2);
-			xAxis = Crossroad.corner_3_6(3);
-			yAxis = Crossroad.corner_3_6(4);
-			L = Crossroad.corner_3_6(5);
+			if x <= xRightBound
+				isAtXRoad = true;	
+			end
 		case 5
-			% Intialize trace parameters
-			centerX = Crossroad.corner_5_8(1);
-			centerY = Crossroad.corner_5_8(2);
-			xAxis = Crossroad.corner_5_8(3);
-			yAxis = Crossroad.corner_5_8(4);
-			L = Crossroad.corner_5_8(5);
+			if y <= yUpBound
+				isAtXRoad = true;	
+			end
 		case 7
-			% Intialize trace parameters
-			centerX = Crossroad.corner_7_2(1);
-			centerY = Crossroad.corner_7_2(2);
-			xAxis = Crossroad.corner_7_2(3);
-			yAxis = Crossroad.corner_7_2(4);
-			L = Crossroad.corner_7_2(5);
+			if x >= xLeftBound
+				isAtXRoad = true;	
+			end
 		otherwise
 			disp('Error in SimuXRoad() -> RegLeftTurning()');
 	end
-	% Calculate angular velocity
-	dRad = pi*v/(2*L)*timeStep;
-	% Normalize the position of the vehicle
-	xNorm = (x-centerX)/xAxis;
-	yNorm = (y-centerY)/yAxis;
-	% Calculate the next position of the vehicle
-	xNormNew = xNorm*cos(dRad) - yNorm*sin(dRad);
-	yNormNew = yNorm*cos(dRad) + xNorm*sin(dRad);
-	x = xNormNew*xAxis+centerX;
-	y = yNormNew*yAxis+centerY;
-	dir = dir+dRad*180/pi;
-	if dir < 0
-		dir = dir+360;
-	elseif dir >= 360
-		dir = dir-360;
+	% Update the position
+	if isAtXRoad
+		switch vehicle.route(1)
+			case 1
+				% Intialize trace parameters
+				centerX = Crossroad.corner_1_4(1);
+				centerY = Crossroad.corner_1_4(2);
+				xAxis = Crossroad.corner_1_4(3);
+				yAxis = Crossroad.corner_1_4(4);
+				L = Crossroad.corner_1_4(5);
+			case 3
+				% Intialize trace parameters
+				centerX = Crossroad.corner_3_6(1);
+				centerY = Crossroad.corner_3_6(2);
+				xAxis = Crossroad.corner_3_6(3);
+				yAxis = Crossroad.corner_3_6(4);
+				L = Crossroad.corner_3_6(5);
+			case 5
+				% Intialize trace parameters
+				centerX = Crossroad.corner_5_8(1);
+				centerY = Crossroad.corner_5_8(2);
+				xAxis = Crossroad.corner_5_8(3);
+				yAxis = Crossroad.corner_5_8(4);
+				L = Crossroad.corner_5_8(5);
+			case 7
+				% Intialize trace parameters
+				centerX = Crossroad.corner_7_2(1);
+				centerY = Crossroad.corner_7_2(2);
+				xAxis = Crossroad.corner_7_2(3);
+				yAxis = Crossroad.corner_7_2(4);
+				L = Crossroad.corner_7_2(5);
+			otherwise
+				disp('Error in SimuXRoad() -> RegLeftTurning()');
+		end
+		% Calculate angular velocity
+		dRad = pi*v/(2*L)*timeStep;
+		% Normalize the position of the vehicle
+		xNorm = (x-centerX)/xAxis;
+		yNorm = (y-centerY)/yAxis;
+		% Calculate the next position of the vehicle
+		xNormNew = xNorm*cos(dRad) - yNorm*sin(dRad);
+		yNormNew = yNorm*cos(dRad) + xNorm*sin(dRad);
+		x = xNormNew*xAxis+centerX;
+		y = yNormNew*yAxis+centerY;
+		dir = dir+dRad*180/pi;
+		if dir < 0
+			dir = dir+360;
+		elseif dir >= 360
+			dir = dir-360;
+		end
+	else
+		switch vehicle.route(1)
+			case 1
+				y = y+v*timeStep;
+			case 3
+				x = x-v*timeStep;
+	        case 5
+				y = y-v*timeStep;
+			case 7
+				x = x+v*timeStep;
+			otherwise
+				disp('Error in SimuXRoad() -> RegLeftTurning()');
+		end
 	end
 	nextPosition = [x, y, dir];	
 end
@@ -304,54 +345,95 @@ function nextPosition = RightTurning(vehicle)
 	x = vehicle.position(1);
 	y = vehicle.position(2);
 	dir = vehicle.position(3);
-	% Update the position
+	xLeftBound = -Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)-Crossroad.turningR;
+	xRightBound = Crossroad.dir_1_2(2)*Crossroad.dir_1_2(3)+Crossroad.turningR;
+	yDownBound = -Crossroad.dir_7_8(2)*Crossroad.dir_7_8(3)-Crossroad.turningR;
+	yUpBound = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
+	isAtXRoad = false;
+	% Decide whether the vehicle has arrived at the crossroad area
 	switch vehicle.route(1)
 		case 1
-			% Intialize trace parameters
-			centerX = Crossroad.corner_1_8(1);
-			centerY = Crossroad.corner_1_8(2);
-			xAxis = Crossroad.corner_1_8(3);
-			yAxis = Crossroad.corner_1_8(4);
-			L = Crossroad.corner_1_8(5);
+			if y >= yDownBound
+				isAtXRoad = true;	
+			end
 		case 3
-			% Intialize trace parameters
-			centerX = Crossroad.corner_3_2(1);
-			centerY = Crossroad.corner_3_2(2);
-			xAxis = Crossroad.corner_3_2(3);
-			yAxis = Crossroad.corner_3_2(4);
-			L = Crossroad.corner_3_2(5);
-        case 5
-			% Intialize trace parameters
-			centerX = Crossroad.corner_5_4(1);
-			centerY = Crossroad.corner_5_4(2);
-			xAxis = Crossroad.corner_5_4(3);
-			yAxis = Crossroad.corner_5_4(4);
-			L = Crossroad.corner_5_4(5);
+			if x <= xRightBound
+				isAtXRoad = true;	
+			end
+		case 5
+			if y <= yUpBound
+				isAtXRoad = true;	
+			end
 		case 7
-			% Intialize trace parameters
-			centerX = Crossroad.corner_7_6(1);
-			centerY = Crossroad.corner_7_6(2);
-			xAxis = Crossroad.corner_7_6(3);
-			yAxis = Crossroad.corner_7_6(4);
-			L = Crossroad.corner_7_6(5);
+			if x >= xLeftBound
+				isAtXRoad = true;	
+			end
 		otherwise
 			disp('Error in SimuXRoad() -> RightTurning()');
 	end
-	% Calculate angular velocity
-	dRad = pi*v/(2*L)*timeStep;
-	% Normalize the position of the vehicle
-	xNorm = (x-centerX)/xAxis;
-	yNorm = (y-centerY)/yAxis;
-	% Calculate the next position of the vehicle
-	xNormNew = xNorm*cos(dRad) + yNorm*sin(dRad);
-	yNormNew = yNorm*cos(dRad) - xNorm*sin(dRad);
-	x = xNormNew*xAxis+centerX;
-	y = yNormNew*yAxis+centerY;
-	dir = dir-dRad*180/pi;
-	if dir < 0
-		dir = dir+360;
-	elseif dir >= 360
-		dir = dir-360;
+	% Update the position
+	if isAtXRoad
+		switch vehicle.route(1)
+			case 1
+				% Intialize trace parameters
+				centerX = Crossroad.corner_1_8(1);
+				centerY = Crossroad.corner_1_8(2);
+				xAxis = Crossroad.corner_1_8(3);
+				yAxis = Crossroad.corner_1_8(4);
+				L = Crossroad.corner_1_8(5);
+			case 3
+				% Intialize trace parameters
+				centerX = Crossroad.corner_3_2(1);
+				centerY = Crossroad.corner_3_2(2);
+				xAxis = Crossroad.corner_3_2(3);
+				yAxis = Crossroad.corner_3_2(4);
+				L = Crossroad.corner_3_2(5);
+	        case 5
+				% Intialize trace parameters
+				centerX = Crossroad.corner_5_4(1);
+				centerY = Crossroad.corner_5_4(2);
+				xAxis = Crossroad.corner_5_4(3);
+				yAxis = Crossroad.corner_5_4(4);
+				L = Crossroad.corner_5_4(5);
+			case 7
+				% Intialize trace parameters
+				centerX = Crossroad.corner_7_6(1);
+				centerY = Crossroad.corner_7_6(2);
+				xAxis = Crossroad.corner_7_6(3);
+				yAxis = Crossroad.corner_7_6(4);
+				L = Crossroad.corner_7_6(5);
+			otherwise
+				disp('Error in SimuXRoad() -> RightTurning()');
+		end
+		% Calculate angular velocity
+		dRad = pi*v/(2*L)*timeStep;
+		% Normalize the position of the vehicle
+		xNorm = (x-centerX)/xAxis;
+		yNorm = (y-centerY)/yAxis;
+		% Calculate the next position of the vehicle
+		xNormNew = xNorm*cos(dRad) + yNorm*sin(dRad);
+		yNormNew = yNorm*cos(dRad) - xNorm*sin(dRad);
+		x = xNormNew*xAxis+centerX;
+		y = yNormNew*yAxis+centerY;
+		dir = dir-dRad*180/pi;
+		if dir < 0
+			dir = dir+360;
+		elseif dir >= 360
+			dir = dir-360;
+		end
+	else
+		switch vehicle.route(1)
+			case 1
+				y = y+v*timeStep;
+			case 3
+				x = x-v*timeStep;
+	        case 5
+				y = y-v*timeStep;
+			case 7
+				x = x+v*timeStep;
+			otherwise
+				disp('Error in SimuXRoad() -> RightTurning()');
+		end
 	end
 	nextPosition = [x, y, dir];
 end

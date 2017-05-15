@@ -106,6 +106,8 @@ function UpdateVehicle()
 			VehicleList(curID).position = nextPosition;
 			if stepType ~= 0
 				VehicleList(curID).state = 1;
+			else
+				VehicleList(curID).state = 0;
 			end
 		else
 			VehicleList(curID).state = -1;
