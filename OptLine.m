@@ -21,7 +21,7 @@ function OptLine(optType)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.05; Last revision: 2017.05.10
+% 2017.05; Last revision: 2017.05.19
 
 %------------- BEGIN CODE --------------
 
@@ -41,11 +41,13 @@ global optType;
 alpha = 0.2;	% learning rate
 gamma = 0.5;	% discount rate
 epsilon = 0.2;	% greedy strategy parameter
-discount = 0.9998;	% discount factor of epsilon
-iterationTimes = 10000;	% times of iteration
+discount = 0.9999;	% discount factor of epsilon
+iterationTimes = 20000;	% times of iteration
 endTime = 5;
 
 %--- Initialize variable(s) ---
+LinePerformAA = zeros(0, 6);
+LinePerformAN = zeros(0, 6);
 tStart = cputime;
 emptyCount = 0;
 
@@ -105,19 +107,36 @@ for i = 1:1:iterationTimes
 	% End timing of the iteration
 	tIterEnd = cputime;
 	% Display the iteration information
-	zeroNum = sum(sum(sum(sum(QMatrixLine == 0))));
-	totalNum = numel(QMatrixLine);
+	zeroNum = sum(sum(sum(QMatrixLine(optType+1, : , : , :) == 0)));
+	totalNum = numel(QMatrixLine(optType+1, : , : , :) == 0);
 	validNum = totalNum - zeroNum;
+	linePerform = [i, validNum/totalNum*100, tIterEnd-tIterStart, tIterEnd-tStart, (tIterEnd-tStart)/i];
+	switch optType
+		case 0
+			LinePerformAA = [LinePerformAA; linePerform];
+		case 1
+			LinePerformAN = [LinePerformAN; linePerform];
+		otherwise
+			disp('Error in OptLine()');
+	end
 	disp(['Iteration: ', num2str(i), '  ', ...
 		'Coverage: ', num2str(validNum/totalNum*100), '%  ', ...
 		'Iteration Time: ', num2str(tIterEnd-tIterStart), 's  ', ...
 		'Total Time: ', num2str(tIterEnd-tStart), 's  ', ...
 		'Average Time: ', num2str((tIterEnd-tStart)/i), 's  ', ...
 		'Empty Count: ', num2str(emptyCount)]);
-	% Save QMatrixLine 
+	% Save QMatrixLine and performance data
 	if mod(i, 50) == 0 || i == iterationTimes
 		cd('MatFile');
 		save('QMatrixLine.mat', 'QMatrixLine');
+		switch optType
+			case 0
+				save('LinePerformAA.mat', 'LinePerformAA');
+			case 1
+				save('LinePerformAN.mat', 'LinePerformAN');
+			otherwise
+				disp('Error in OptLine()');
+		end
 		cd('..');
 		disp(['Save QMatrixLine in iteration ', num2str(i)]);
 	end
@@ -170,7 +189,7 @@ function [preState, curState, curQ] = GenRandState()
 	curState = zeros(1, 3);
 	curStateList = zeros(0, 3);
 	randVMin = 2;
-	randVMax = 6;
+	randVMax = 8;
 	randIntMin = 3;
 	randIntMax = 7;
 	% Initialize preState

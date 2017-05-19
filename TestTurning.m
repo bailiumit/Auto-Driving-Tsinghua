@@ -21,7 +21,7 @@ function TestTurning()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.05.08
+% 2017.03; Last revision: 2017.05.17
 
 %------------- BEGIN CODE --------------
 
@@ -31,6 +31,7 @@ global xScale;
 global yScale;
 global yDownNum;
 global timeScale;
+global figureNum;
 
 %--- Initialize variable(s) ---
 initialSpeed = randi([0, 20])/2;
@@ -54,12 +55,29 @@ while ~JudgeTerminal(curState)
 	disp(curState);
 end
 
-%--- Display result ---
+%--- Display training result ---
 % Calculate time cost of turning
 turningTime = size(stateTrace, 1)*timeScale;
 disp(['Turning time is: ', num2str(turningTime)]);
 % Draw the trace
 DrawTurningTrace(stateTrace);
+
+%--- Display training performance ---
+cd('MatFile');
+load 'TurningPerform.mat';
+cd('..');
+figure(figureNum);
+plot(TurningPerform( : , 1), TurningPerform( : , 2), 'LineWidth', 1);
+figureNum = figureNum+1;
+figure(figureNum);
+plot(TurningPerform( : , 1), TurningPerform( : , 3), 'LineWidth', 1);
+figureNum = figureNum+1;
+figure(figureNum);
+plot(TurningPerform( : , 1), TurningPerform( : , 4), 'LineWidth', 1);
+figureNum = figureNum+1;
+figure(figureNum);
+plot(TurningPerform( : , 1), TurningPerform( : , 5), 'LineWidth', 1);
+figureNum = figureNum+1;
 
 %------------- END OF CODE --------------
 end
@@ -128,7 +146,9 @@ function DrawTurningTrace(stateTrace)
 	global xScale;
 	global yRange;
 	global yScale;
+	global figureNum;
 	% Draw the trace
+	figure(figureNum);
 	% plot(stateTrace( : , 1), stateTrace( : , 2), 'Marker', '*');
 	plot(stateTrace( : , 1), stateTrace( : , 2), 'LineWidth', 1.5);
 	axis([xRange(1), xRange(2), yRange(1), yRange(2)])
@@ -144,6 +164,7 @@ function DrawTurningTrace(stateTrace)
 		end
 	end
 	scatter(omitAreaTable( : , 1), omitAreaTable( : , 2), '.');
+	figureNum = figureNum+1;
 end
 
 %--- Decide whether the agent has exceeded boundaries ---

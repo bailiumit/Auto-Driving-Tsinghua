@@ -21,22 +21,23 @@ function TestLine(optType)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.05; Last revision: 2017.05.10
+% 2017.05; Last revision: 2017.05.19
 
 %------------- BEGIN CODE --------------
 
 %--- Set global variable(s) ---
 global optType;
+global figureNum;
 
 %--- Set test parameter(s) ---
 endTime = 5;
 timeScaleTestLine = 0.2;
-tArray = 0:timeScaleTestLine:endTime;
+tArray = 0:timeScaleTestLine:endTime+timeScaleTestLine;
 
 %--- Initialize variable(s) ---
 [preState, curState, curQ] = GenRandState();
-% stateTrace = curState;
-stateTrace = zeros(0, 3);
+stateTrace = preState;
+% stateTrace = zeros(0, 3);
 
 %--- Do testing ---
 disp('Testing: ');
@@ -54,6 +55,44 @@ end
 
 %--- Display result ---
 DrawTurningTrace(tArray, stateTrace);
+
+%--- Display training performance ---
+switch optType
+	case 0
+		cd('MatFile');
+		load 'LinePerformAA.mat';
+		cd('..');
+		figure(figureNum);
+		plot(LinePerformAA( : , 1), LinePerformAA( : , 2), 'LineWidth', 1);
+		figureNum = figureNum+1;
+		figure(figureNum);
+		plot(LinePerformAA( : , 1), LinePerformAA( : , 3), 'LineWidth', 1);
+		figureNum = figureNum+1;
+		figure(figureNum);
+		plot(LinePerformAA( : , 1), LinePerformAA( : , 4), 'LineWidth', 1);
+		figureNum = figureNum+1;
+		figure(figureNum);
+		plot(LinePerformAA( : , 1), LinePerformAA( : , 5), 'LineWidth', 1);
+		figureNum = figureNum+1;
+	case 1
+		cd('MatFile');
+		load 'LinePerformAN.mat';
+		cd('..');
+		figure(figureNum);
+		plot(LinePerformAN( : , 1), LinePerformAN( : , 2), 'LineWidth', 1);
+		figureNum = figureNum+1;
+		figure(figureNum);
+		plot(LinePerformAN( : , 1), LinePerformAN( : , 3), 'LineWidth', 1);
+		figureNum = figureNum+1;
+		figure(figureNum);
+		plot(LinePerformAN( : , 1), LinePerformAN( : , 4), 'LineWidth', 1);
+		figureNum = figureNum+1;
+		figure(figureNum);
+		plot(LinePerformAN( : , 1), LinePerformAN( : , 5), 'LineWidth', 1);
+		figureNum = figureNum+1;
+	otherwise
+		disp('Error in TestLine()');
+end
 
 %------------- END OF CODE --------------
 end
@@ -75,18 +114,19 @@ function [preState, curState, curQ] = GenRandState()
 	curState = zeros(1, 3);
 	curStateList = zeros(0, 3);
 	randVMin = 2;
-	randVMax = 6;
+	randVMax = 8;
 	randIntMin = 3;
 	randIntMax = 7;
 	% Initialize preState
 	while isempty(curStateList)
-		preState(1) = Trim(randIntMin+(randIntMax-randIntMin)*rand, intScale);
-		preState(2) = Trim(randVMin+(randVMax-randVMin)*rand, vScale);
-		preState(3) = Trim(randVMin+(randVMax-randVMin)*rand, vScale);
+		% preState(1) = Trim(randIntMin+(randIntMax-randIntMin)*rand, intScale);
+		% preState(2) = Trim(randVMin+(randVMax-randVMin)*rand, vScale);
+		% preState(3) = Trim(randVMin+(randVMax-randVMin)*rand, vScale);
+		preState = [4, 2, 6];
 		curStateList = CalLineAction(preState, optType);
 	end
 	% Initialize curState
-	[curState, curQ] = FindMaxState(curStateList);
+	[curState, curQ] = FindMaxState(curStateList);	
 end
 
 %--- Search for the state with maximum reward ---
@@ -124,7 +164,10 @@ end
 
 %--- Draw trace ---
 function DrawTurningTrace(tArray, stateTrace)
+	% Set global variable(s)	
+	global figureNum;
 	% Draw the traces of vehicle speed
+	figure(figureNum);
 	yyaxis left;
 	plot(tArray, stateTrace( : , 2), 'LineWidth', 1.5);
 	hold on;
@@ -140,6 +183,7 @@ function DrawTurningTrace(tArray, stateTrace)
 	xlabel('time(s)');
 	legend('Vehicle 1', 'Vehicle 2', 'Interval');
 	grid on;
+	figureNum = figureNum+1;
 end
 
 %--- Trim number to corresponding scale ---

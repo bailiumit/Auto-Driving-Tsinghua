@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.15
+% 2017.02; Last revision: 2017.05.19
 
 %------------- BEGIN CODE --------------
 
@@ -28,12 +28,13 @@ warning off;
 InitializeGlobal();
 
 %--- Train and test single agent turning strategy ---
+% Note: only available to 2-lane road (need to change Crossroad.dir_m_n(2) to 2)
 % OptTurning();
 % TestTurning();
 
 %--- Train and test multi-agent turning strategy ---
-% OptLine(0);
-% TestLine(0);
+OptLine(0);
+TestLine(0);
 % OptLine(1);
 % TestLine(1);
 
@@ -44,8 +45,8 @@ InitializeGlobal();
 % TestSignal();
 
 %--- Display the result ---
-SimuXRoad();
-DrawMotion();
+% SimuXRoad();
+% DrawMotion();
 
 %--- Investigate how multiple factors impact the optimization effect ---
 % InvestigateEffect();

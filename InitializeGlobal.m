@@ -21,7 +21,7 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.05.15
+% 2017.03; Last revision: 2017.05.18
 
 %------------- BEGIN CODE --------------
 
@@ -83,6 +83,7 @@ global startTime;
 global endTime;
 global timeStep;
 global autoRatio;
+global figureNum;
 % Initialize dynamic variables
 VehicleList = Vehicle;
 PositionCell = cell(ceil((endTime-startTime)/timeStep), 1);
@@ -91,6 +92,7 @@ startTime = 0;
 endTime = 100;
 timeStep = 0.1;
 autoRatio = 0.5;
+figureNum = 1;
 
 %--- Turning optimization training variables ---
 global xRange;
@@ -123,7 +125,7 @@ dirRange = [0, 360];
 dirScale = 5;
 dirNum = floor((dirRange(2)-dirRange(1))/dirScale) + 1;
 % Distance to the front vehicle
-distNum = 2;	% 0: safe, 1: unsafe
+distNum = 1;	% 0: safe, 1: unsafe
 % Time of per simulation (unit: s)
 timeScale = 0.3;
 % QMatrix

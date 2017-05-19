@@ -21,7 +21,7 @@ function OptTurning()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.05.08
+% 2017.03; Last revision: 2017.05.17
 
 %------------- BEGIN CODE --------------
 
@@ -43,6 +43,7 @@ discount = 0.999;	% discount factor of epsilon
 iterationTimes = 10000;	% times of iteration
 
 %--- Initialize variable(s) ---
+TurningPerform = zeros(0, 5);
 tStart = cputime;
 
 %--- Do training ---
@@ -85,17 +86,20 @@ for i = 1:1:iterationTimes
 	zeroNum = sum(sum(sum(sum(QMatrix == 0))));
 	totalNum = numel(QMatrix) - infNum;
 	validNum = totalNum - zeroNum;
-	disp(['Iteration: ', num2str(i), '  ', ...
-		'Coverage: ', num2str(validNum/totalNum*100), '%  ', ...
-		'Iteration Time: ', num2str(tIterEnd-tIterStart), 's  ', ...
-		'Total Time: ', num2str(tIterEnd-tStart), 's  ', ...
-		'Average Time: ', num2str((tIterEnd-tStart)/i), 's']);
+	turningPerform = [i, validNum/totalNum*100, tIterEnd-tIterStart, tIterEnd-tStart, (tIterEnd-tStart)/i];
+	TurningPerform = [TurningPerform; turningPerform];
+	disp(['Iteration: ', num2str(turningPerform(1)), '  ', ...
+		'Coverage: ', num2str(turningPerform(2)), '%  ', ...
+		'Iteration Time: ', num2str(turningPerform(3)), 's  ', ...
+		'Total Time: ', num2str(turningPerform(4)), 's  ', ...
+		'Average Time: ', num2str(turningPerform(5)), 's']);
 	% Save QMatrix 
 	if mod(i, 100) == 0
 		cd('MatFile');
 		save('QMatrix.mat', 'QMatrix');
+		save('TurningPerform.mat', 'TurningPerform');
 		cd('..');
-		disp(['Save QMatrix in iteration ', num2str(i)]);
+		disp(['Save data in iteration ', num2str(i)]);
 	end
 end
 
@@ -112,9 +116,11 @@ function reward = Reward(preState, curState, nextState)
 	global xRange;
 	global yRange;
 	global timeScale;
+	global Crossroad;
 	% Calculate the factors of distance
-	% distFactor = abs(curState(1)-xRange(1))/(xRange(2)-xRange(1));
-	distFactor = ((curState(1)-xRange(1))^2+(curState(2)-yRange(2))^2)/...
+	destX = xRange(1);
+	destY = Crossroad.dir_3_4(3)/2;
+	distFactor = ((curState(1)-destX)^2+(curState(2)-destY)^2)/...
 				 ((xRange(1)-xRange(2))^2+(yRange(1)-yRange(2))^2);
 	% Calculate the factors of degree
 	degFactor = abs(curState(3)-135)/45;
@@ -142,7 +148,6 @@ function reward = Reward(preState, curState, nextState)
 	end
 	% Calculate the reward
 	reward = 1/(distFactor+0.01) + 1/(degFactor+0.01) - 1/(comfFactor+0.01);
-	% reward = 1/(distFactor+0.01) - 1/(comfFactor+0.01) + 100;
 end
 
 %--- Search for the state with maximum reward ---
