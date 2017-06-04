@@ -12,7 +12,7 @@
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.19
+% 2017.02; Last revision: 2017.06.04
 
 %------------- BEGIN CODE --------------
 
@@ -33,8 +33,8 @@ InitializeGlobal();
 % TestTurning();
 
 %--- Train and test multi-agent turning strategy ---
-OptLine(0);
-TestLine(0);
+% OptLine(0);
+% TestLine(0);
 % OptLine(1);
 % TestLine(1);
 
@@ -42,11 +42,13 @@ TestLine(0);
 % OptSignal(1);
 % OptSignal(2);
 % OptSignal(3);
-% TestSignal();
+% TestSignal(1);
+% TestSignal(2);
+% TestSignal(3); 
 
 %--- Display the result ---
-% SimuXRoad();
-% DrawMotion();
+SimuXRoad();
+DrawMotion();
 
 %--- Investigate how multiple factors impact the optimization effect ---
 % InvestigateEffect();

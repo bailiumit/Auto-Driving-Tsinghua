@@ -1,10 +1,10 @@
 function OptSignal(optimizeType)
 %OptSignal - Optimize traffic signal display strategy
 %
-% Syntax:  [~] = OptSignal()
+% Syntax:  [~] = OptSignal(optimizeType)
 %
 % Inputs:
-%    none      
+%    optimizeType      
 %
 % Outputs:
 %    none
@@ -32,6 +32,7 @@ global Crossroad;
 % Dynamic
 global VehicleList;
 global curTime;
+global figureNum;
 
 %--- Optimize traffic signal ---
 switch optimizeType
@@ -44,11 +45,6 @@ switch optimizeType
 	otherwise
 		disp('Error in OptSignal()');
 end
-
-%--- Draw the Figure ---
-% figure(figureNum);
-iLine = 1:1:size(traceT, 1);
-plot(iLine, traceT, 'LineWidth', 2);
 
 %--- Save signal to .mat file ---
 optSignal = Crossroad.signal;

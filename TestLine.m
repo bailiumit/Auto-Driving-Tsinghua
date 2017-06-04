@@ -37,6 +37,7 @@ tArray = 0:timeScaleTestLine:endTime+timeScaleTestLine;
 %--- Initialize variable(s) ---
 [preState, curState, curQ] = GenRandState();
 stateTrace = preState;
+disp(preState);
 % stateTrace = zeros(0, 3);
 
 %--- Do testing ---
@@ -57,42 +58,42 @@ end
 DrawTurningTrace(tArray, stateTrace);
 
 %--- Display training performance ---
-switch optType
-	case 0
-		cd('MatFile');
-		load 'LinePerformAA.mat';
-		cd('..');
-		figure(figureNum);
-		plot(LinePerformAA( : , 1), LinePerformAA( : , 2), 'LineWidth', 1);
-		figureNum = figureNum+1;
-		figure(figureNum);
-		plot(LinePerformAA( : , 1), LinePerformAA( : , 3), 'LineWidth', 1);
-		figureNum = figureNum+1;
-		figure(figureNum);
-		plot(LinePerformAA( : , 1), LinePerformAA( : , 4), 'LineWidth', 1);
-		figureNum = figureNum+1;
-		figure(figureNum);
-		plot(LinePerformAA( : , 1), LinePerformAA( : , 5), 'LineWidth', 1);
-		figureNum = figureNum+1;
-	case 1
-		cd('MatFile');
-		load 'LinePerformAN.mat';
-		cd('..');
-		figure(figureNum);
-		plot(LinePerformAN( : , 1), LinePerformAN( : , 2), 'LineWidth', 1);
-		figureNum = figureNum+1;
-		figure(figureNum);
-		plot(LinePerformAN( : , 1), LinePerformAN( : , 3), 'LineWidth', 1);
-		figureNum = figureNum+1;
-		figure(figureNum);
-		plot(LinePerformAN( : , 1), LinePerformAN( : , 4), 'LineWidth', 1);
-		figureNum = figureNum+1;
-		figure(figureNum);
-		plot(LinePerformAN( : , 1), LinePerformAN( : , 5), 'LineWidth', 1);
-		figureNum = figureNum+1;
-	otherwise
-		disp('Error in TestLine()');
-end
+% switch optType
+% 	case 0
+% 		cd('MatFile');
+% 		load 'LinePerformAA.mat';
+% 		cd('..');
+% 		figure(figureNum);
+% 		plot(LinePerformAA( : , 1), LinePerformAA( : , 2), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 		figure(figureNum);
+% 		plot(LinePerformAA( : , 1), LinePerformAA( : , 3), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 		figure(figureNum);
+% 		plot(LinePerformAA( : , 1), LinePerformAA( : , 4), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 		figure(figureNum);
+% 		plot(LinePerformAA( : , 1), LinePerformAA( : , 5), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 	case 1
+% 		cd('MatFile');
+% 		load 'LinePerformAN.mat';
+% 		cd('..');
+% 		figure(figureNum);
+% 		plot(LinePerformAN( : , 1), LinePerformAN( : , 2), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 		figure(figureNum);
+% 		plot(LinePerformAN( : , 1), LinePerformAN( : , 3), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 		figure(figureNum);
+% 		plot(LinePerformAN( : , 1), LinePerformAN( : , 4), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 		figure(figureNum);
+% 		plot(LinePerformAN( : , 1), LinePerformAN( : , 5), 'LineWidth', 1);
+% 		figureNum = figureNum+1;
+% 	otherwise
+% 		disp('Error in TestLine()');
+% end
 
 %------------- END OF CODE --------------
 end
@@ -114,7 +115,7 @@ function [preState, curState, curQ] = GenRandState()
 	curState = zeros(1, 3);
 	curStateList = zeros(0, 3);
 	randVMin = 2;
-	randVMax = 8;
+	randVMax = 6;
 	randIntMin = 3;
 	randIntMax = 7;
 	% Initialize preState
@@ -122,7 +123,7 @@ function [preState, curState, curQ] = GenRandState()
 		% preState(1) = Trim(randIntMin+(randIntMax-randIntMin)*rand, intScale);
 		% preState(2) = Trim(randVMin+(randVMax-randVMin)*rand, vScale);
 		% preState(3) = Trim(randVMin+(randVMax-randVMin)*rand, vScale);
-		preState = [4, 2, 6];
+		preState = [5, 2, 2];
 		curStateList = CalLineAction(preState, optType);
 	end
 	% Initialize curState
@@ -173,15 +174,15 @@ function DrawTurningTrace(tArray, stateTrace)
 	hold on;
 	plot(tArray, stateTrace( : , 3), 'LineWidth', 1.5);
 	ylim([0, max(max(stateTrace( : , 2:3)))*1.25]);
-	ylabel('Speed (m/s)')
+	ylabel('速度 (m/s)')
 	% Draw the trace of interval
 	yyaxis right;
 	plot(tArray, stateTrace( : , 1), 'LineWidth', 1.5);
 	ylim([0, max(stateTrace( : , 1))*1.5]);
-	ylabel('Distance (m)')
+	ylabel('距离 (m)')
 	% Others
-	xlabel('time(s)');
-	legend('Vehicle 1', 'Vehicle 2', 'Interval');
+	xlabel('时间 (s)');
+	legend('前车', '后车', '间距');
 	grid on;
 	figureNum = figureNum+1;
 end

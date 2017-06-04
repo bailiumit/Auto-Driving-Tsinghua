@@ -189,7 +189,7 @@ function [preState, curState, curQ] = GenRandState()
 	curState = zeros(1, 3);
 	curStateList = zeros(0, 3);
 	randVMin = 2;
-	randVMax = 8;
+	randVMax = 6;
 	randIntMin = 3;
 	randIntMax = 7;
 	% Initialize preState

@@ -22,7 +22,7 @@ function [newVehicle, newID] = GenerateVehicle(curID)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.02; Last revision: 2017.05.15
+% 2017.02; Last revision: 2017.06.04
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -43,8 +43,7 @@ newID = curID+1;
 newVehicle.ID = newID;
 newVehicle.size = GenerateSize();
 newVehicle.type = GenerateType();
-% newVehicle.route = GenerateRoute();
-newVehicle.route = [1, 4];
+newVehicle.route = GenerateRoute();
 newVehicle.dynamic = GenerateDynamic();
 newVehicle.position = GeneratePosition(newVehicle.size, newVehicle.route, newVehicle.type);
 newVehicle.trace = [curTime-timeStep, newVehicle.position];
@@ -59,8 +58,8 @@ end
 
 %--- Generate the size of vehicles randomly ---
 function newSize = GenerateSize()
-	newLength = 2 + 1.5*rand;
-	newWidth = 1.5 + 0.8*rand;
+	newLength = 3 + 0.3*rand;
+	newWidth = 1.8 + 0.1*rand;
 	newSize = [newLength, newWidth];
 end
 
@@ -265,7 +264,7 @@ function originPosition = InitializePosition(newRoute)
 			newX = -(newLaneID-0.5) * Crossroad.dir_5_6(3);
 			newY = Crossroad.dir_3_4(2)*Crossroad.dir_3_4(3)+Crossroad.turningR;
 			% Initialize direction
-			newDirection = 0;
+			newDirection = 270;
 		case 7
 			% Determine the laneID
 			switch newRoute(2)
@@ -282,7 +281,7 @@ function originPosition = InitializePosition(newRoute)
 			newX = - (Crossroad.dir_5_6(2)*Crossroad.dir_5_6(3)+Crossroad.turningR);
 			newY = - (newLaneID-0.5) * Crossroad.dir_7_8(3);
 			% Initialize direction
-			newDirection = 270;
+			newDirection = 0;
 		otherwise
 			disp('Error in GenerateVehicle() -> InitializePosition() -> switch route(2)');
 	end

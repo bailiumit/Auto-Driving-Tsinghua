@@ -26,7 +26,7 @@ function vehicleNum = CalVehicleNum()
 %------------- BEGIN CODE --------------
 
 %--- Calculate the number of vehicles in a unit ---
-if rand < 0.2
+if rand < 0.1
 	vehicleNum = 1;
 else
 	vehicleNum = 0;

@@ -21,7 +21,7 @@ function UpdateSpeed(insideList)
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.05; Last revision: 2017.05.10
+% 2017.05; Last revision: 2017.05.23
 
 %------------- BEGIN MAIN FUNCTION --------------
 
@@ -30,17 +30,20 @@ global VehicleList;
 global ClassifiedList;
 global intScale;
 
+%--- Initialize variable(s) ---
+bestSpeed = 5;
+
 %--- Update vehicle speed ---
 for i = 1:1:4
 	for j = 1:1:4
-		j = 1;
-		while j <= size(ClassifiedList{i, j}, 1)-1
+		k = 1;
+		while k <= size(ClassifiedList{i, j}, 1)-1
 			% Locate current vehicle
-			curID = ClassifiedList{i, j}(j);
+			curID = ClassifiedList{i, j}(k);
 			curVehicle = VehicleList(curID);
 			if curVehicle.type == 1
 				% Locate the vehicle behind
-				nextID = ClassifiedList{i, j}(j+1);
+				nextID = ClassifiedList{i, j}(k+1);
 				nextVehicle = VehicleList(nextID);
 				% Get dynamic properties
 				v1 = curVehicle.dynamic(1);
@@ -59,13 +62,19 @@ for i = 1:1:4
 				end
 				% Update speed
 				nextState = GetNextState(curState, optType);
-				VehicleList(curID).dynamic(1) = nextState(2);
-				VehicleList(nextID).dynamic(1) = nextState(3);
+				VehicleList(curID).dynamic(1) = max(nextState(2), 3);
+				VehicleList(nextID).dynamic(1) = max(nextState(3), 3);
 				% Set index
-				j = j+2;
+				k = k+2;
 			else
+				if k == 1
+					VehicleList(curID).dynamic(1) = bestSpeed;
+				else
+					prevID = ClassifiedList{i, j}(k-1);
+					VehicleList(curID).dynamic(1) = VehicleList(prevID).dynamic(1);
+				end
 				% Set index
-				j = j+1;
+				k = k+1;
 			end
 		end
 	end
@@ -86,7 +95,7 @@ function nextState = GetNextState(curState, optType)
 	if ~isempty(nextStateList)
 		[nextState, ~] = FindMaxState(nextStateList);
 	else
-
+		nextState = [curState(1), 5, 5];
 	end
 
 end

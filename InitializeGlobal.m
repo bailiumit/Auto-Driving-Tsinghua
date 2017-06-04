@@ -21,7 +21,7 @@ function InitializeGlobal()
 % Author: Bai Liu
 % Department of Automation, Tsinghua University 
 % email: liubaichn@126.com
-% 2017.03; Last revision: 2017.05.18
+% 2017.03; Last revision: 2017.05.23
 
 %------------- BEGIN CODE --------------
 
@@ -89,8 +89,8 @@ VehicleList = Vehicle;
 PositionCell = cell(ceil((endTime-startTime)/timeStep), 1);
 % Initialize simulation parameters
 startTime = 0;
-endTime = 100;
-timeStep = 0.1;
+endTime = 200;
+timeStep = 0.2;
 autoRatio = 0.5;
 figureNum = 1;
 
