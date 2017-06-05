@@ -53,7 +53,7 @@ for i = 1:1:4
 				x2 = nextVehicle.position(1);
 				y2 = nextVehicle.position(2);
 				% Initialize variables required to calculate new speed
-				interval = Trim(sqrt((x1-x2)^2+(y1-y2)^2)-(curVehicle.size(1)/2+curVehicle.size(2)/2), intScale);
+				interval = Trim(sqrt((x1-x2)^2+(y1-y2)^2)-(curVehicle.size(1)/2+nextVehicle.size(1)/2), intScale);
 				curState = [interval, v1, v2];
 				if curVehicle.type == 1
 					optType = 0;

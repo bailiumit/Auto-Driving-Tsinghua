@@ -78,7 +78,7 @@ function UpdateVehicle()
 	signal = JudgeStage();
 	isPhaseEnd = JudgePhaseEnd(signal);
 	% Update vehicle speed
-	% UpdateSpeed();
+	UpdateSpeed();
 	% Update states
 	for i = 1:1:size(insideList, 1)
 		% Decide the type of the next step 
