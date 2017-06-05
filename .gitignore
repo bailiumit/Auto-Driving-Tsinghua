@@ -1,5 +1,6 @@
 # Ignore data file(s)
 MatFile
+Animation
 *.mat
 *.fig
 
